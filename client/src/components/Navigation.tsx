@@ -29,17 +29,17 @@ export function Navigation() {
 
   return (
     <header className="shrink-0 z-50 w-full border-b-2 border-border bg-background">
-      <div className="retro-container py-3 flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="bg-primary p-2 rounded-lg group-hover:rotate-12 transition-transform">
-            <Terminal className="h-6 w-6 text-white" />
+      <div className="max-w-full px-2 sm:px-4 py-2 flex h-14 items-center justify-between gap-1">
+        <Link href="/" className="flex items-center gap-2 group shrink-0">
+          <div className="bg-primary p-1.5 rounded-md group-hover:rotate-12 transition-transform">
+            <Terminal className="h-4 w-4 text-white" />
           </div>
-          <span className="font-display text-lg text-primary tracking-tighter hidden sm:block">
-            BlueCoder<span className="text-secondary">Hub</span>
+          <span className="font-display text-sm text-primary tracking-tighter hidden lg:block">
+            BCH
           </span>
         </Link>
 
-        <nav className="flex items-center gap-1 sm:gap-4">
+        <nav className="flex items-center gap-0.5 flex-1 justify-center overflow-hidden">
           {navItems.map((item) => {
             const isActive = location === item.href;
             return (
@@ -47,52 +47,53 @@ export function Navigation() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-md font-display text-[10px] sm:text-xs transition-colors",
+                  "flex items-center gap-1 px-1.5 sm:px-2 py-1.5 rounded-md text-[9px] sm:text-[10px] transition-colors shrink-0",
                   isActive
                     ? "bg-primary/10 text-primary border border-primary/20"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
                 data-testid={`nav-${item.label.toLowerCase()}`}
+                title={item.label}
               >
-                <item.icon className="h-4 w-4" />
-                <span className="hidden md:inline">{item.label}</span>
+                <item.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden xl:inline">{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 shrink-0">
           {adminCheck?.isAdmin && (
             <Link 
               href="/admin" 
               className={cn(
-                "flex items-center gap-2 px-3 py-2 rounded-md font-display text-xs transition-colors",
+                "flex items-center gap-1 px-1.5 py-1.5 rounded-md text-[10px] transition-colors",
                 location === "/admin"
                   ? "bg-primary/10 text-primary border border-primary/20"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
               data-testid="nav-admin"
+              title="Admin"
             >
-              <Shield className="h-4 w-4" />
-              <span className="hidden md:inline">Admin</span>
+              <Shield className="h-3.5 w-3.5" />
             </Link>
           )}
-          <Link href="/profile" className="hidden sm:flex items-center gap-3 px-3 py-2 rounded-md hover:bg-muted transition-colors" data-testid="link-profile">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-sm font-bold text-white">
+          <Link href="/profile" className="hidden sm:flex items-center gap-2 px-2 py-1 rounded-md hover:bg-muted transition-colors" data-testid="link-profile">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xs font-bold text-white">
               {(user.firstName?.[0] || 'P').toUpperCase()}
             </div>
-            <div className="flex flex-col items-start">
-              <span className="text-xs font-bold text-foreground" data-testid="text-username">{user.firstName || 'Player'}</span>
-              <span className="text-[10px] text-secondary" data-testid="text-user-level-nav">Lvl. {stats?.level || 1}</span>
+            <div className="flex flex-col items-start hidden lg:flex">
+              <span className="text-[10px] font-bold text-foreground" data-testid="text-username">{user.firstName || 'Player'}</span>
+              <span className="text-[9px] text-secondary" data-testid="text-user-level-nav">Lvl. {stats?.level || 1}</span>
             </div>
           </Link>
           <button
             onClick={() => logout()}
-            className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+            className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
             title="Log out"
             data-testid="button-logout"
           >
-            <LogOut className="h-5 w-5" />
+            <LogOut className="h-4 w-4" />
           </button>
         </div>
       </div>
