@@ -1,13 +1,22 @@
+import { useQuery } from "@tanstack/react-query";
 import { useUserStats } from "@/hooks/use-user-stats";
-import { useProblems } from "@/hooks/use-problems";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Trophy, Flame, Target, ChevronRight, Star, Lock } from "lucide-react";
+import { Trophy, Flame, Target, ChevronRight, Star, Award, Calendar, Clock, Zap, BookOpen, MessageSquare, Code2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import type { ProblemResponse, DailyChallenge } from "@shared/schema";
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useUserStats();
-  const { data: problems, isLoading: problemsLoading } = useProblems();
+  
+  const { data: problems, isLoading: problemsLoading } = useQuery<ProblemResponse[]>({
+    queryKey: ['/api/problems'],
+  });
+
+  const { data: dailyChallenge } = useQuery<DailyChallenge & { problem: ProblemResponse }>({
+    queryKey: ['/api/daily-challenge'],
+  });
 
   if (statsLoading || problemsLoading) {
     return (
@@ -20,18 +29,16 @@ export default function Dashboard() {
     );
   }
 
-  // Calculate level progress
   const currentLevelXP = stats?.xp || 0;
-  const xpForNextLevel = (stats?.level || 1) * 100;
+  const xpForNextLevel = ((stats?.level || 1) + 1) * 500;
   const progressPercent = Math.min((currentLevelXP / xpForNextLevel) * 100, 100);
 
   const nextQuest = problems?.find(p => !p.isSolved) || problems?.[0];
+  const solvedCount = problems?.filter(p => p.isSolved).length || 0;
 
   return (
     <main className="retro-container space-y-8">
-      {/* Header Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main XP Card */}
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -49,27 +56,28 @@ export default function Dashboard() {
             
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-mono mb-1">
-                <span>XP: {currentLevelXP}</span>
-                <span>Next: {xpForNextLevel}</span>
+                <span>XP: {currentLevelXP.toLocaleString()}</span>
+                <span>Next Level: {xpForNextLevel.toLocaleString()}</span>
               </div>
               <div className="h-4 bg-muted rounded-full overflow-hidden border border-border">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercent}%` }}
                   transition={{ duration: 1, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-primary to-accent relative"
+                  className="h-full bg-gradient-to-r from-primary to-secondary relative"
                 >
                   <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.15)25%,transparent_25%,transparent_50%,rgba(255,255,255,0.15)50%,rgba(255,255,255,0.15)75%,transparent_75%,transparent)] bg-[length:20px_20px] animate-[slide_1s_linear_infinite]"></div>
                 </motion.div>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                Solve {Math.ceil((xpForNextLevel - currentLevelXP) / 10)} more problems to level up!
+                {xpForNextLevel - currentLevelXP > 0 
+                  ? `${(xpForNextLevel - currentLevelXP).toLocaleString()} XP until next level`
+                  : "Ready to level up!"}
               </p>
             </div>
           </div>
         </motion.div>
 
-        {/* Streak Card */}
         <motion.div 
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -84,11 +92,59 @@ export default function Dashboard() {
         </motion.div>
       </div>
 
-      {/* Next Objective */}
+      {dailyChallenge?.problem && (
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <h3 className="text-lg mb-4 flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-yellow-500" />
+            Daily Challenge
+            <span className="ml-auto text-xs text-muted-foreground flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              Resets at midnight
+            </span>
+          </h3>
+          <Link href={`/quests/${dailyChallenge.problem.slug}`}>
+            <div className="pixel-card p-6 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-yellow-500/30 cursor-pointer group">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded font-bold flex items-center gap-1">
+                      <Star className="w-3 h-3" />
+                      {dailyChallenge.bonusXp}x XP Bonus
+                    </span>
+                    <span className={cn(
+                      "text-[10px] px-2 py-0.5 rounded font-mono uppercase border",
+                      dailyChallenge.problem.difficulty === "Easy" ? "bg-green-500/10 text-green-500 border-green-500/20" :
+                      dailyChallenge.problem.difficulty === "Medium" ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" :
+                      "bg-red-500/10 text-red-500 border-red-500/20"
+                    )}>
+                      {dailyChallenge.problem.difficulty}
+                    </span>
+                  </div>
+                  <h4 className="text-xl group-hover:text-yellow-500 transition-colors normal-case font-bold">
+                    {dailyChallenge.problem.title}
+                  </h4>
+                  <p className="text-muted-foreground text-sm mt-1 line-clamp-1">
+                    {dailyChallenge.problem.description}
+                  </p>
+                </div>
+                <Button className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold">
+                  <Zap className="w-4 h-4 mr-2" />
+                  Accept
+                </Button>
+              </div>
+            </div>
+          </Link>
+        </motion.section>
+      )}
+
       <section>
         <h3 className="text-lg mb-4 flex items-center gap-2">
           <Target className="w-5 h-5 text-accent" />
-          Current Objective
+          Continue Your Journey
         </h3>
         {nextQuest ? (
           <Link href={`/quests/${nextQuest.slug}`}>
@@ -118,24 +174,23 @@ export default function Dashboard() {
           </Link>
         ) : (
           <div className="pixel-card p-6 text-center text-muted-foreground">
-            All quests completed! Wait for updates.
+            All quests completed! Check back for more challenges.
           </div>
         )}
       </section>
 
-      {/* Recent Activity / Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Problems Solved", value: stats?.solvedCount || 0, icon: Star, color: "text-yellow-400" },
-          { label: "Global Rank", value: "#42", icon: Trophy, color: "text-purple-400" },
-          { label: "Total XP", value: stats?.xp || 0, icon: Zap, color: "text-blue-400" },
-          { label: "Badges", value: "3", icon: Lock, color: "text-pink-400" },
+          { label: "Problems Solved", value: solvedCount, icon: Star, color: "text-yellow-500" },
+          { label: "Current Level", value: stats?.level || 1, icon: Trophy, color: "text-purple-500" },
+          { label: "Total XP", value: currentLevelXP.toLocaleString(), icon: Zap, color: "text-blue-500" },
+          { label: "Day Streak", value: stats?.streak || 0, icon: Flame, color: "text-orange-500" },
         ].map((stat, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 + i * 0.1 }}
+            transition={{ delay: 0.3 + i * 0.1 }}
             className="pixel-card p-4 flex flex-col items-center justify-center text-center gap-2"
           >
             <stat.icon className={cn("w-5 h-5", stat.color)} />
@@ -144,26 +199,68 @@ export default function Dashboard() {
           </motion.div>
         ))}
       </div>
-    </main>
-  );
-}
 
-// Helper icons
-function Zap(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-    </svg>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Link href="/tutorials">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="pixel-card p-5 cursor-pointer group hover:border-primary/30 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h4 className="font-bold group-hover:text-primary transition-colors">Learn</h4>
+                <p className="text-xs text-muted-foreground">Structured tutorials & courses</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground ml-auto group-hover:text-primary" />
+            </div>
+          </motion.div>
+        </Link>
+
+        <Link href="/discussions">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="pixel-card p-5 cursor-pointer group hover:border-secondary/30 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center">
+                <MessageSquare className="w-6 h-6 text-secondary" />
+              </div>
+              <div>
+                <h4 className="font-bold group-hover:text-secondary transition-colors">Community</h4>
+                <p className="text-xs text-muted-foreground">Ask questions & help others</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground ml-auto group-hover:text-secondary" />
+            </div>
+          </motion.div>
+        </Link>
+
+        <Link href="/ide">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="pixel-card p-5 cursor-pointer group hover:border-accent/30 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
+                <Code2 className="w-6 h-6 text-accent" />
+              </div>
+              <div>
+                <h4 className="font-bold group-hover:text-accent transition-colors">Playground</h4>
+                <p className="text-xs text-muted-foreground">Code in 8+ languages</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground ml-auto group-hover:text-accent" />
+            </div>
+          </motion.div>
+        </Link>
+      </div>
+    </main>
   );
 }
