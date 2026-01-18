@@ -28,7 +28,7 @@ export function Navigation() {
   if (!user) return null;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b-2 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="shrink-0 z-50 w-full border-b-2 border-border bg-background">
       <div className="retro-container py-3 flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="bg-primary p-2 rounded-lg group-hover:rotate-12 transition-transform">

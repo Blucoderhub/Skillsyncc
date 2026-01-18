@@ -32,12 +32,12 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   if (!user) return <Redirect to="/" />;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       <Navigation />
-      <main className="flex-grow pt-4 pb-8">
+      <main className="flex-1 overflow-y-auto pt-4 pb-8">
         <Component />
+        <Footer />
       </main>
-      <Footer />
       <ChatWidget />
     </div>
   );
