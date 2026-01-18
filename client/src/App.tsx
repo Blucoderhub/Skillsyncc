@@ -13,6 +13,12 @@ import Quests from "@/pages/Quests";
 import ProblemDetail from "@/pages/ProblemDetail";
 import Hackathons from "@/pages/Hackathons";
 import IDE from "@/pages/IDE";
+import Tutorials from "@/pages/Tutorials";
+import TutorialDetail from "@/pages/TutorialDetail";
+import Discussions from "@/pages/Discussions";
+import DiscussionDetail from "@/pages/DiscussionDetail";
+import Leaderboard from "@/pages/Leaderboard";
+import Profile from "@/pages/Profile";
 import NotFound from "@/pages/not-found";
 
 // Protected Route Wrapper
@@ -69,6 +75,30 @@ function Router() {
 
       <Route path="/ide">
         <ProtectedRoute component={IDE} />
+      </Route>
+
+      <Route path="/tutorials">
+        <ProtectedRoute component={Tutorials} />
+      </Route>
+
+      <Route path="/tutorials/:slug">
+        <ProtectedRoute component={TutorialDetail} />
+      </Route>
+
+      <Route path="/discussions">
+        <ProtectedRoute component={Discussions} />
+      </Route>
+
+      <Route path="/discussions/:id">
+        <ProtectedRoute component={DiscussionDetail} />
+      </Route>
+
+      <Route path="/leaderboard">
+        <ProtectedRoute component={Leaderboard} />
+      </Route>
+
+      <Route path="/profile">
+        <ProtectedRoute component={Profile} />
       </Route>
 
       <Route component={NotFound} />

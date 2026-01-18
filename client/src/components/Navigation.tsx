@@ -1,16 +1,20 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { Code2, Swords, Trophy, LogOut, Terminal, Map } from "lucide-react";
+import { useUserStats } from "@/hooks/use-user-stats";
+import { Code2, Swords, Trophy, LogOut, Terminal, Map, BookOpen, MessageSquare, Award, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Navigation() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const { data: stats } = useUserStats();
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: Map },
     { href: "/quests", label: "Quests", icon: Swords },
-    { href: "/hackathons", label: "Hackathons", icon: Trophy },
+    { href: "/tutorials", label: "Learn", icon: BookOpen },
+    { href: "/discussions", label: "Community", icon: MessageSquare },
+    { href: "/leaderboard", label: "Ranks", icon: Trophy },
     { href: "/ide", label: "IDE", icon: Code2 },
   ];
 
@@ -49,15 +53,21 @@ export function Navigation() {
           })}
         </nav>
 
-        <div className="flex items-center gap-4">
-          <div className="hidden sm:flex flex-col items-end">
-            <span className="text-xs font-bold text-foreground">{user.firstName || 'Player'}</span>
-            <span className="text-[10px] text-secondary">Lvl. 1 Novice</span>
-          </div>
+        <div className="flex items-center gap-2">
+          <Link href="/profile" className="hidden sm:flex items-center gap-3 px-3 py-2 rounded-md hover:bg-muted transition-colors">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-sm font-bold text-white">
+              {(user.firstName?.[0] || 'P').toUpperCase()}
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="text-xs font-bold text-foreground">{user.firstName || 'Player'}</span>
+              <span className="text-[10px] text-secondary">Lvl. {stats?.level || 1}</span>
+            </div>
+          </Link>
           <button
             onClick={() => logout()}
             className="p-2 text-muted-foreground hover:text-destructive transition-colors"
             title="Log out"
+            data-testid="button-logout"
           >
             <LogOut className="h-5 w-5" />
           </button>
