@@ -1,0 +1,82 @@
+# BlueCoderHub
+
+## Overview
+BlueCoderHub is a gamified ed-tech platform inspired by Codedex.io, combining features from HackerEarth, HackerRank, LeetCode, StackOverflow, and W3Schools. The platform features a retro-futuristic gaming aesthetic with XP-based progression.
+
+## Tech Stack
+- **Frontend**: React + Vite + TypeScript
+- **Backend**: Express.js + Node.js
+- **Database**: PostgreSQL with Drizzle ORM
+- **Styling**: TailwindCSS with custom retro-gaming theme
+- **Authentication**: Replit Auth (OIDC - supports Google, GitHub, Apple, email)
+- **AI**: Replit AI Integrations (OpenAI gpt-5 models - no API key required)
+- **Code Editor**: Monaco Editor (@monaco-editor/react)
+
+## Key Features
+1. **Gamified Learning**: XP, levels, streaks, and quests
+2. **Code Quests**: Interactive coding challenges with instant feedback
+3. **Built-in IDE**: Monaco-powered code editor
+4. **AI Companion**: Chat widget powered by OpenAI
+5. **Hackathon Tracker**: Global hackathon listings
+6. **User Progress**: XP tracking, level progression
+
+## Project Structure
+```
+├── client/                  # Frontend React app
+│   ├── src/
+│   │   ├── components/     # UI components (Navigation, ChatWidget, etc.)
+│   │   ├── pages/          # Route pages (Dashboard, Quests, IDE, etc.)
+│   │   ├── hooks/          # Custom React hooks
+│   │   ├── lib/            # Utilities
+│   │   └── replit_integrations/  # Audio/voice integrations
+│   └── public/             # Static assets
+├── server/                  # Backend Express app
+│   ├── routes.ts           # API endpoints
+│   ├── storage.ts          # Database operations
+│   ├── db.ts               # Database connection
+│   └── replit_integrations/ # Auth, Chat, Audio, Image modules
+├── shared/                  # Shared types and schemas
+│   ├── schema.ts           # Drizzle database schemas
+│   ├── routes.ts           # API contract definitions
+│   └── models/             # Auth and Chat models
+```
+
+## API Endpoints
+- `GET /api/problems` - List all coding problems
+- `GET /api/problems/:slug` - Get problem details
+- `POST /api/problems/:id/submit` - Submit code solution
+- `GET /api/user/stats` - Get user progress (XP, level, streak)
+- `GET /api/hackathons` - List hackathons
+- `GET /api/auth/user` - Get current user
+- `/api/login` - Login flow
+- `/api/logout` - Logout flow
+
+## Database Tables
+- `users` - User accounts (Replit Auth)
+- `sessions` - Session storage
+- `problems` - Coding challenges
+- `submissions` - User code submissions
+- `user_progress` - XP, levels, streaks
+- `hackathons` - Hackathon listings
+- `conversations` - AI chat conversations
+- `messages` - AI chat messages
+
+## Design Theme
+- **Colors**: Deep space blue backgrounds, neon purple/green/pink accents
+- **Typography**: 'Press Start 2P' for headers (retro gaming), 'Inter' for body
+- **Components**: Pixel-art inspired cards with drop shadows
+- **Dark mode by default** with gradient backgrounds
+
+## Development Commands
+- `npm run dev` - Start development server
+- `npm run db:push` - Push database schema changes
+- `npm run build` - Build for production
+
+## Environment Variables
+- `DATABASE_URL` - PostgreSQL connection string
+- `SESSION_SECRET` - Session encryption key
+- `AI_INTEGRATIONS_OPENAI_API_KEY` - Auto-configured by Replit
+- `AI_INTEGRATIONS_OPENAI_BASE_URL` - Auto-configured by Replit
+
+## Contact
+- Email: connect@bluecoderhub.com

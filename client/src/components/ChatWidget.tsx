@@ -45,13 +45,65 @@ export function ChatWidget() {
   const handleSend = async () => {
     if (!input.trim()) return;
     
-    // Add user message immediately
-    const userMsg: Message = { role: "user", text: input };
-    setMessages(prev => [...prev, userMsg]);
+    const userText = input.trim();
     setInput("");
     
-    // In a real implementation, we would send this text to the chat API
-    // For now, we'll simulate a response or use the voice flow if implemented for text
+    // Add user message immediately
+    setMessages(prev => [...prev, { role: "user", text: userText }]);
+    
+    // Add pending assistant message
+    setMessages(prev => [...prev, { role: "assistant", text: "..." }]);
+    
+    try {
+      // Create or get conversation
+      let conversationId = 1;
+      
+      // Send message to chat API with SSE streaming
+      const response = await fetch(`/api/conversations/${conversationId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: userText }),
+        credentials: "include"
+      });
+      
+      if (!response.ok) throw new Error("Failed to send message");
+      
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No response body");
+      
+      const decoder = new TextDecoder();
+      let fullResponse = "";
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+        
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (data.content) {
+              fullResponse += data.content;
+              setMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { role: "assistant", text: fullResponse };
+                return updated;
+              });
+            }
+          } catch {}
+        }
+      }
+    } catch (err) {
+      console.error("Chat error:", err);
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { role: "assistant", text: "Sorry, I encountered an error. Please try again." };
+        return updated;
+      });
+    }
   };
   
   const handleVoiceToggle = async () => {

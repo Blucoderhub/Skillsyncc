@@ -8,7 +8,7 @@ export function Navigation() {
   const { user, logout } = useAuth();
 
   const navItems = [
-    { href: "/", label: "Dashboard", icon: Map },
+    { href: "/dashboard", label: "Dashboard", icon: Map },
     { href: "/quests", label: "Quests", icon: Swords },
     { href: "/hackathons", label: "Hackathons", icon: Trophy },
     { href: "/ide", label: "IDE", icon: Code2 },

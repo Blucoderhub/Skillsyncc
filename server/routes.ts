@@ -24,17 +24,39 @@ export async function registerRoutes(
   // 3. Application Routes
 
   // Problems List
-  app.get(api.problems.list.path, async (req, res) => {
+  app.get(api.problems.list.path, async (req: any, res) => {
     const problems = await storage.getAllProblems();
-    // In a real app, we'd check submission status here to set isSolved
-    res.json(problems);
+    
+    // Check if user is authenticated to show solved status
+    if (req.isAuthenticated && req.isAuthenticated() && req.user?.claims?.sub) {
+      const userId = req.user.claims.sub;
+      const problemsWithStatus = await Promise.all(
+        problems.map(async (problem) => {
+          const submissions = await storage.getUserSubmissions(userId, problem.id);
+          const isSolved = submissions.some(s => s.status === "Passed");
+          return { ...problem, isSolved };
+        })
+      );
+      return res.json(problemsWithStatus);
+    }
+    
+    res.json(problems.map(p => ({ ...p, isSolved: false })));
   });
 
   // Problem Get
-  app.get(api.problems.get.path, async (req, res) => {
+  app.get(api.problems.get.path, async (req: any, res) => {
     const problem = await storage.getProblemBySlug(req.params.slug);
     if (!problem) return res.status(404).json({ message: "Problem not found" });
-    res.json(problem);
+    
+    // Check solved status if authenticated
+    let isSolved = false;
+    if (req.isAuthenticated && req.isAuthenticated() && req.user?.claims?.sub) {
+      const userId = req.user.claims.sub;
+      const submissions = await storage.getUserSubmissions(userId, problem.id);
+      isSolved = submissions.some(s => s.status === "Passed");
+    }
+    
+    res.json({ ...problem, isSolved });
   });
 
   // Submit Code

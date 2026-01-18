@@ -1,7 +1,7 @@
 import { useParams, useLocation } from "wouter";
 import { useProblem, useSubmitCode } from "@/hooks/use-problems";
 import Editor from "@monaco-editor/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Play, CheckCircle, XCircle, RotateCcw, ChevronLeft, Loader2 } from "lucide-react";
 import Confetti from "react-confetti";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,14 +18,18 @@ export default function ProblemDetail() {
   const [code, setCode] = useState("");
   const [output, setOutput] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  // Set initial code when problem loads
+  useEffect(() => {
+    if (problem?.starterCode && !initialized) {
+      setCode(problem.starterCode);
+      setInitialized(true);
+    }
+  }, [problem, initialized]);
 
   if (isLoading) return <div className="text-center py-20 animate-pulse text-primary">Loading Quest...</div>;
   if (!problem) return <div className="text-center py-20 text-destructive">Quest not found</div>;
-
-  // Set initial code if empty
-  if (!code && problem.starterCode) {
-    setCode(problem.starterCode);
-  }
 
   const handleRun = () => {
     setOutput(null);
