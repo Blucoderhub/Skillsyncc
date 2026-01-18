@@ -1,111 +1,178 @@
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { motion } from "framer-motion";
-import { Terminal, ChevronRight, Zap, Globe, Code2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Terminal, Code2, Swords, Trophy, BookOpen, 
+  MessageSquare, Calendar, Shield, Zap, 
+  Globe, LayoutGrid, Rocket, Target, Users
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+const NAV_ITEMS = [
+  { href: "/dashboard", label: "Dashboard", icon: Globe, color: "text-blue-400" },
+  { href: "/quests", label: "Quests", icon: Swords, color: "text-red-400" },
+  { href: "/tutorials", label: "Learn", icon: BookOpen, color: "text-green-400" },
+  { href: "/practice", label: "Practice", icon: Code2, color: "text-purple-400" },
+  { href: "/hackathons", label: "Events", icon: Calendar, color: "text-pink-400" },
+  { href: "/discussions", label: "Forum", icon: MessageSquare, color: "text-yellow-400" },
+  { href: "/leaderboard", label: "Ranks", icon: Trophy, color: "text-orange-400" },
+];
 
 export default function Landing() {
+  const { user } = useAuth();
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Hero Section */}
-      <section className="flex-1 flex flex-col justify-center items-center relative overflow-hidden px-4 py-20">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-        
-        <div className="z-10 text-center max-w-4xl mx-auto space-y-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-block"
+    <div className="relative min-h-screen bg-[#020617] text-white overflow-hidden font-inter">
+      {/* Dynamic Background Animation */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(17,24,39,1),rgba(2,6,23,1))]" />
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: "radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0)",
+            backgroundSize: "40px 40px",
+            transform: `translate(${mousePos.x * -0.01}px, ${mousePos.y * -0.01}px)`
+          }}
+        />
+        {/* Animated Glows */}
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ duration: 8, repeat: Infinity }}
+          className="absolute top-1/4 -left-20 w-96 h-96 bg-primary/20 rounded-full blur-[120px]" 
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1.2, 1, 1.2],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ duration: 10, repeat: Infinity }}
+          className="absolute bottom-1/4 -right-20 w-96 h-96 bg-secondary/20 rounded-full blur-[120px]" 
+        />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 flex flex-col min-h-screen">
+        {/* Minimal Hero Brand */}
+        <header className="flex justify-between items-center mb-12">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-3"
           >
-            <span className="px-3 py-1 rounded-full bg-secondary/10 text-secondary border border-secondary/20 text-xs font-mono mb-4 inline-block">
-              v1.0.0 RELEASED
+            <div className="bg-primary/20 p-2 rounded-xl border border-primary/30 backdrop-blur-sm">
+              <Terminal className="w-6 h-6 text-primary" />
+            </div>
+            <span className="text-xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+              BlueCoder<span className="text-primary">Hub</span>
             </span>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-display leading-tight text-white mb-6">
-              Master the <span className="text-primary">Code</span><br />
-              <span className="text-secondary">Conquer</span> the Web
+          </motion.div>
+
+          <div className="flex gap-4">
+            {user ? (
+              <Button asChild variant="outline" className="border-white/10 bg-white/5 backdrop-blur-md hover:bg-white/10 rounded-xl">
+                <Link href="/dashboard">Enter Hub</Link>
+              </Button>
+            ) : (
+              <div className="flex gap-3">
+                <Button asChild variant="ghost" className="text-gray-400 hover:text-white rounded-xl">
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button asChild className="bg-primary hover:bg-primary/90 text-white border-0 shadow-lg shadow-primary/20 rounded-xl px-8">
+                  <Link href="/login">Get Started</Link>
+                </Button>
+              </div>
+            )}
+          </div>
+        </header>
+
+        {/* Central Content */}
+        <div className="flex-1 flex flex-col items-center justify-center text-center max-w-4xl mx-auto mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold mb-8 tracking-widest uppercase">
+              <Zap className="w-3 h-3" /> Gamified Learning Evolution
+            </div>
+            <h1 className="text-5xl md:text-8xl font-black mb-8 leading-[1.1] tracking-tight">
+              Master the <span className="bg-clip-text text-transparent bg-gradient-to-b from-primary via-primary to-secondary">Cyber Realm</span> of Code
             </h1>
-            <p className="text-muted-foreground text-lg md:text-xl font-body max-w-2xl mx-auto leading-relaxed">
-              Join the ultimate gamified coding adventure. Solve quests, earn XP, battle algorithms, and become a legendary developer.
+            <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed font-light">
+              Level up your logic, survive the hackathons, and conquer the leaderboard in the ultimate ed-tech RPG for developers.
             </p>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-          >
-            <a href="/api/login" className="pixel-btn-primary text-sm flex items-center gap-2">
-              Start Adventure <ChevronRight className="h-4 w-4" />
-            </a>
-            <a href="#features" className="pixel-btn bg-muted text-foreground hover:bg-muted/80">
-              View Quest Log
-            </a>
-          </motion.div>
-        </div>
-
-        {/* Decorative Grid items */}
-        <div className="absolute top-1/4 left-10 hidden lg:block opacity-20">
-          <div className="w-24 h-24 border-4 border-primary rounded-lg rotate-12"></div>
-        </div>
-        <div className="absolute bottom-1/4 right-10 hidden lg:block opacity-20">
-          <div className="w-32 h-32 border-4 border-secondary rounded-full -rotate-6"></div>
-        </div>
-      </section>
-
-      {/* Features Grid */}
-      <section id="features" className="py-20 bg-card/50 border-t border-border">
-        <div className="retro-container">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Terminal,
-                title: "Code Quests",
-                desc: "Solve real-world coding problems disguised as RPG quests. Level up your skills."
-              },
-              {
-                icon: Zap,
-                title: "Instant Feedback",
-                desc: "Run your code in our browser-based IDE with instant test case validation."
-              },
-              {
-                icon: Globe,
-                title: "Global Hackathons",
-                desc: "Join global events and compete with other developers for glory and prizes."
-              }
-            ].map((feature, i) => (
+          {/* Animated Navigation Portal */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 w-full max-w-6xl mt-12 px-4">
+            {NAV_ITEMS.map((item, idx) => (
               <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="pixel-card p-8 bg-background"
+                key={item.href}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.05 * idx, type: "spring", stiffness: 200 }}
+                onMouseEnter={() => setHoveredIndex(idx)}
+                onMouseLeave={() => setHoveredIndex(null)}
               >
-                <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-6">
-                  <feature.icon className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm">{feature.desc}</p>
+                <Link href={item.href}>
+                  <div className={cn(
+                    "group relative p-4 bg-white/5 border border-white/10 backdrop-blur-xl overflow-hidden transition-all duration-500 cursor-pointer rounded-2xl h-full flex flex-col items-center justify-center gap-3",
+                    hoveredIndex === idx ? "border-primary/50 -translate-y-2 ring-1 ring-primary/20 bg-white/10" : "hover:border-white/20"
+                  )}>
+                    <div className={cn(
+                      "p-3 rounded-xl bg-white/5 group-hover:scale-110 transition-transform duration-500",
+                      item.color.replace('text-', 'bg-').replace('-400', '/10')
+                    )}>
+                      <item.icon className={cn("w-5 h-5", item.color)} />
+                    </div>
+                    <span className="text-[10px] font-bold tracking-widest uppercase group-hover:text-primary transition-colors">{item.label}</span>
+                    
+                    {/* Interactive hover glow */}
+                    <AnimatePresence>
+                      {hoveredIndex === idx && (
+                        <motion.div 
+                          layoutId="portal-glow"
+                          className="absolute inset-0 bg-primary/10 blur-2xl pointer-events-none"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                        />
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </Link>
               </motion.div>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border py-8 bg-background">
-        <div className="retro-container flex flex-col md:flex-row justify-between items-center gap-4">
+        {/* Footer Stats */}
+        <footer className="mt-auto pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-gray-500 pb-8">
+          <div className="flex gap-12">
+            <div><span className="text-white font-bold">50k+</span> Active Coders</div>
+            <div><span className="text-white font-bold">120+</span> Quests Available</div>
+            <div><span className="text-white font-bold">15+</span> Tech Tracks</div>
+          </div>
           <div className="flex items-center gap-2">
-            <Code2 className="h-5 w-5 text-secondary" />
-            <span className="font-display text-sm text-muted-foreground">BlueCoderHub © 2024</span>
+            <Globe className="w-4 h-4" /> Global Node Active
           </div>
-          <div className="flex gap-6 text-sm text-muted-foreground">
-            <a href="#" className="hover:text-primary transition-colors">Twitter</a>
-            <a href="#" className="hover:text-primary transition-colors">GitHub</a>
-            <a href="#" className="hover:text-primary transition-colors">Discord</a>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }

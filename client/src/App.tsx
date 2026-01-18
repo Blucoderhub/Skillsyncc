@@ -33,8 +33,7 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      <Navigation />
-      <main className="flex-1 overflow-y-auto pt-4 pb-8">
+      <main className="flex-1 overflow-y-auto">
         <Component />
         <Footer />
       </main>
