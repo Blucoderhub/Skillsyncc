@@ -1,0 +1,126 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "-apple-system",
+      "count": 139
+    },
+    {
+      "family": "BlinkMacSystemFont",
+      "count": 139
+    },
+    {
+      "family": "Segoe UI Adjusted",
+      "count": 139
+    },
+    {
+      "family": "Segoe UI",
+      "count": 139
+    },
+    {
+      "family": "Liberation Sans",
+      "count": 139
+    },
+    {
+      "family": "sans-serif",
+      "count": 139
+    },
+    {
+      "family": "Arial",
+      "count": 44
+    }
+  ],
+  "colors": {
+    "primary": "#1B75D0",
+    "accent": "#636B74",
+    "background": "#FFFFFF",
+    "textPrimary": "#3B4045",
+    "link": "#636B74"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "-apple-system",
+      "heading": "-apple-system"
+    },
+    "fontStacks": {
+      "body": [
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Segoe UI Adjusted",
+        "Segoe UI",
+        "Liberation Sans",
+        "sans-serif"
+      ],
+      "heading": [
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Segoe UI Adjusted",
+        "Segoe UI",
+        "Liberation Sans",
+        "sans-serif"
+      ],
+      "paragraph": [
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Segoe UI Adjusted",
+        "Segoe UI",
+        "Liberation Sans",
+        "sans-serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "27px",
+      "h2": "27px",
+      "body": "12px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "3px"
+  },
+  "components": {
+    "input": {
+      "background": "#FFFFFF",
+      "textColor": "#3B4045",
+      "borderColor": "#BABFC5",
+      "borderRadius": "6px",
+      "borderRadiusCorners": {
+        "topLeft": "6px",
+        "topRight": "6px",
+        "bottomRight": "6px",
+        "bottomLeft": "6px"
+      },
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "logo": "https://stackoverflow.com/Content/Sites/stackoverflow/Img/icon-48.png?v=b7e36f88ff92",
+    "favicon": "https://stackoverflow.com/Content/Sites/stackoverflow/Img/favicon.ico?v=ec617d715196",
+    "ogImage": "https://stackoverflow.com/Content/Sites/stackoverflow/Img/apple-touch-icon@2.png?v=73d79a89bded"
+  },
+  "__framework_hints": [],
+  "__llm_logo_reasoning": {
+    "selectedIndex": 0,
+    "reasoning": "Logo rejected: Red flags detected (small square icon). Heuristic fallback: Weak indicators: in header, no link (brand logos usually link to homepage, penalty), header location, alt matches logo/brand, small square icon (likely UI icon, heavy penalty), not visible (penalty). Score: 16. LLM validation recommended (close scores: top=16, second=0)",
+    "confidence": 0.30000000000000004,
+    "rejected": true
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": -1,
+      "text": "N/A",
+      "reasoning": "LLM failed"
+    },
+    "secondary": {
+      "index": -1,
+      "text": "N/A",
+      "reasoning": "LLM failed"
+    },
+    "confidence": 0
+  },
+  "confidence": {
+    "buttons": 0,
+    "colors": 0,
+    "overall": 0
+  }
+}

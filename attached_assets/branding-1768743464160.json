@@ -1,0 +1,86 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "Satoshi",
+      "count": 110
+    },
+    {
+      "family": "Verdana",
+      "count": 110
+    },
+    {
+      "family": "sans-serif",
+      "count": 110
+    }
+  ],
+  "colors": {
+    "primary": "#003333",
+    "accent": "#030914",
+    "background": "#FFFFFF",
+    "textPrimary": "#030914",
+    "link": "#030914"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Satoshi",
+      "heading": "Satoshi"
+    },
+    "fontStacks": {
+      "body": [
+        "Satoshi",
+        "Verdana",
+        "sans-serif"
+      ],
+      "heading": [
+        "Satoshi",
+        "Verdana",
+        "sans-serif"
+      ],
+      "paragraph": [
+        "Satoshi",
+        "Verdana",
+        "sans-serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "80px",
+      "h2": "56px",
+      "body": "20px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "8px"
+  },
+  "components": {},
+  "images": {
+    "logo": "File saved at: attached_assets/logo.svg",
+    "favicon": "File saved at: attached_assets/favicon.png",
+    "ogImage": "File saved at: attached_assets/ogImage.jpg"
+  },
+  "__framework_hints": [],
+  "__llm_logo_reasoning": {
+    "selectedIndex": 12,
+    "reasoning": "Strong indicators: links to homepage, visible, top-left position, src contains logo, class contains logo, alt exactly matches brand name \"HackerRank\", reasonable size, body location without header (penalty). Score: 85 (clear winner by 22 points)",
+    "confidence": 0.9
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": -1,
+      "text": "N/A",
+      "reasoning": "LLM failed"
+    },
+    "secondary": {
+      "index": -1,
+      "text": "N/A",
+      "reasoning": "LLM failed"
+    },
+    "confidence": 0
+  },
+  "confidence": {
+    "buttons": 0,
+    "colors": 0,
+    "overall": 0
+  }
+}

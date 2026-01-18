@@ -1,0 +1,84 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "sans-serif",
+      "count": 131
+    },
+    {
+      "family": "Source Sans Pro Topnav",
+      "count": 81
+    },
+    {
+      "family": "Source Sans Pro",
+      "count": 50
+    }
+  ],
+  "colors": {
+    "primary": "#FFF4A3",
+    "accent": "#04AA6D",
+    "background": "#FFFFFF",
+    "textPrimary": "#000000",
+    "link": "#04AA6D"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Source Sans Pro",
+      "heading": "Source Sans Pro"
+    },
+    "fontStacks": {
+      "body": [
+        "Source Sans Pro",
+        "sans-serif"
+      ],
+      "heading": [
+        "Source Sans Pro",
+        "sans-serif"
+      ],
+      "paragraph": [
+        "Source Sans Pro Topnav",
+        "sans-serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "70px",
+      "h2": "32px",
+      "body": "17px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "5px"
+  },
+  "components": {
+    "input": {
+      "background": "#FFFFFF",
+      "textColor": "#222222",
+      "borderColor": "#BFBFBF",
+      "borderRadius": "25px",
+      "borderRadiusCorners": {
+        "topLeft": "25px",
+        "topRight": "25px",
+        "bottomRight": "25px",
+        "bottomLeft": "25px"
+      },
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "logo": "File saved at: attached_assets/logo.svg",
+    "favicon": "https://www.w3schools.com/favicon.ico",
+    "ogImage": "https://www.w3schools.com/images/w3schools_logo_436_2.png"
+  },
+  "__framework_hints": [],
+  "__llm_logo_reasoning": {
+    "selectedIndex": 0,
+    "reasoning": "Heuristic fallback: Good indicators: variant bonus (+8), in header, header location, top-left position, highest logo on page, too small (likely icon, penalty), small square icon (likely UI icon, heavy penalty), SVG format, not visible (penalty). Score: 48 (ahead by 48 points)",
+    "confidence": 0.65
+  },
+  "confidence": {
+    "buttons": 0,
+    "colors": 0,
+    "overall": 0
+  }
+}

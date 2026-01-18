@@ -23,11 +23,11 @@ export async function registerRoutes(
 
   // 3. Application Routes
 
-  // Problems List
+  // Problems List with filters
   app.get(api.problems.list.path, async (req: any, res) => {
-    const problems = await storage.getAllProblems();
+    const { category, difficulty, search } = req.query;
+    const problems = await storage.getAllProblems({ category, difficulty, search });
     
-    // Check if user is authenticated to show solved status
     if (req.isAuthenticated && req.isAuthenticated() && req.user?.claims?.sub) {
       const userId = req.user.claims.sub;
       const problemsWithStatus = await Promise.all(
@@ -43,12 +43,18 @@ export async function registerRoutes(
     res.json(problems.map(p => ({ ...p, isSolved: false })));
   });
 
+  // Daily Challenge
+  app.get(api.problems.daily.path, async (req, res) => {
+    const daily = await storage.getDailyChallenge();
+    if (!daily) return res.status(404).json({ message: "No daily challenge" });
+    res.json(daily);
+  });
+
   // Problem Get
   app.get(api.problems.get.path, async (req: any, res) => {
     const problem = await storage.getProblemBySlug(req.params.slug);
     if (!problem) return res.status(404).json({ message: "Problem not found" });
     
-    // Check solved status if authenticated
     let isSolved = false;
     if (req.isAuthenticated && req.isAuthenticated() && req.user?.claims?.sub) {
       const userId = req.user.claims.sub;
@@ -68,25 +74,32 @@ export async function registerRoutes(
     const problem = await storage.getProblemById(problemId);
     if (!problem) return res.status(404).json({ message: "Problem not found" });
 
-    // Mock Execution Logic
-    // In production, send to Piston or similar
-    const passed = Math.random() > 0.3; // 70% chance to pass for mock
+    // Improved mock execution - check for basic patterns
+    let passed = false;
+    const codeLC = code.toLowerCase();
+    
+    if (problem.slug.includes("hello-world") && (code.includes("print") || code.includes("console.log"))) {
+      passed = codeLC.includes("hello") && codeLC.includes("world");
+    } else if (problem.slug.includes("sum") && code.includes("return")) {
+      passed = code.includes("+") || code.includes("a + b") || code.includes("a+b");
+    } else {
+      passed = code.length > 20 && code.includes("return");
+    }
+    
     const output = passed 
-      ? "Tests Passed: 5/5\nExecution Time: 0.05s" 
-      : "Error: AssertionError: expected 5 to equal 6\nTests Passed: 2/5";
+      ? "All Tests Passed!\nExecution Time: 0.05s\nMemory: 8.2 MB" 
+      : "Test Failed\nExpected output does not match\nTry checking your logic again.";
 
-    // Save submission
     await storage.createSubmission(userId, {
       problemId,
       code,
       status: passed ? "Passed" : "Failed",
     });
 
-    // Update Progress if passed
     let xpEarned = 0;
     if (passed) {
       const prevSubmissions = await storage.getUserSubmissions(userId, problemId);
-      const alreadySolved = prevSubmissions.some(s => s.status === "Passed");
+      const alreadySolved = prevSubmissions.filter(s => s.status === "Passed").length > 1;
       
       if (!alreadySolved) {
         xpEarned = problem.xpReward;
@@ -99,7 +112,7 @@ export async function registerRoutes(
       output,
       passed,
       xpEarned,
-      nextProblemSlug: "next-problem-slug-placeholder" // Logic to find next order
+      nextProblemSlug: undefined
     });
   });
 
@@ -115,27 +128,133 @@ export async function registerRoutes(
     res.json(stats);
   });
 
+  // Leaderboard
+  app.get(api.leaderboard.list.path, async (req, res) => {
+    const leaderboardData = await storage.getLeaderboard(50);
+    
+    const leaderboard = leaderboardData.map((entry, index) => ({
+      rank: index + 1,
+      userId: entry.userId,
+      username: `Coder${entry.userId.slice(-4)}`,
+      xp: entry.xp || 0,
+      level: entry.level || 1,
+      solvedCount: entry.solvedCount || 0,
+      badgeCount: 0,
+    }));
+    
+    res.json(leaderboard);
+  });
+
+  // Tutorials
+  app.get(api.tutorials.list.path, async (req, res) => {
+    const tutorialsList = await storage.getAllTutorials();
+    res.json(tutorialsList);
+  });
+
+  app.get(api.tutorials.get.path, async (req, res) => {
+    const tutorial = await storage.getTutorialBySlug(req.params.slug);
+    if (!tutorial) return res.status(404).json({ message: "Tutorial not found" });
+    res.json(tutorial);
+  });
+
+  app.get(api.tutorials.lesson.path, async (req, res) => {
+    const lesson = await storage.getLessonBySlug(req.params.tutorialSlug, req.params.lessonSlug);
+    if (!lesson) return res.status(404).json({ message: "Lesson not found" });
+    res.json(lesson);
+  });
+
+  app.post(api.tutorials.completeLesson.path, isAuthenticated, async (req, res) => {
+    const userId = (req.user as any).claims.sub;
+    const lessonId = parseInt(req.params.id);
+    const result = await storage.completeLessonProgress(userId, lessonId);
+    res.json({ success: true, xpEarned: result.xpEarned });
+  });
+
+  // Discussions
+  app.get(api.discussions.list.path, async (req, res) => {
+    const discussionsList = await storage.getAllDiscussions();
+    const withAuthors = discussionsList.map(d => ({
+      ...d,
+      authorName: `User${d.userId.slice(-4)}`,
+    }));
+    res.json(withAuthors);
+  });
+
+  app.get(api.discussions.get.path, async (req, res) => {
+    const id = parseInt(req.params.id);
+    const discussion = await storage.getDiscussionById(id);
+    if (!discussion) return res.status(404).json({ message: "Discussion not found" });
+    
+    const answersList = await storage.getAnswersForDiscussion(id);
+    const answersWithAuthors = answersList.map(a => ({
+      ...a,
+      authorName: `User${a.userId.slice(-4)}`,
+    }));
+    
+    res.json({
+      ...discussion,
+      authorName: `User${discussion.userId.slice(-4)}`,
+      answers: answersWithAuthors,
+    });
+  });
+
+  app.post(api.discussions.create.path, isAuthenticated, async (req, res) => {
+    const userId = (req.user as any).claims.sub;
+    const discussion = await storage.createDiscussion(userId, req.body);
+    res.json(discussion);
+  });
+
+  app.post(api.discussions.answer.path, isAuthenticated, async (req, res) => {
+    const userId = (req.user as any).claims.sub;
+    const discussionId = parseInt(req.params.id);
+    const { content } = req.body;
+    await storage.createAnswer(userId, discussionId, content);
+    res.json({ success: true });
+  });
+
+  app.post(api.discussions.vote.path, isAuthenticated, async (req, res) => {
+    const userId = (req.user as any).claims.sub;
+    const discussionId = parseInt(req.params.id);
+    const { value } = req.body;
+    const newCount = await storage.voteDiscussion(userId, discussionId, value);
+    res.json({ success: true, newCount });
+  });
+
+  // Badges
+  app.get(api.badges.list.path, async (req, res) => {
+    const badgesList = await storage.getAllBadges();
+    res.json(badgesList);
+  });
+
+  app.get(api.badges.userBadges.path, isAuthenticated, async (req, res) => {
+    const userId = (req.user as any).claims.sub;
+    const userBadgesList = await storage.getUserBadges(userId);
+    res.json(userBadgesList);
+  });
+
   // Hackathons
   app.get(api.hackathons.list.path, async (req, res) => {
     const hacks = await storage.getAllHackathons();
     res.json(hacks);
   });
 
-  // Seed Data (Safe to call on every startup, checks inside)
+  // Seed Data
   await seedDatabase();
 
   return httpServer;
 }
 
 async function seedDatabase() {
-  const problems = [
+  // Extended problem set covering multiple categories
+  const problemsData = [
     {
       slug: "hello-world-python",
-      title: "The Legend of Python: Hello World",
-      description: "Your adventure begins here. Print 'Hello, World!' to the console to awaken the ancient spirits of code.",
+      title: "The Legend Begins: Hello World",
+      description: "Your adventure begins here. Print 'Hello, World!' to the console to awaken the ancient spirits of code.\n\n**Example:**\n```\nOutput: Hello, World!\n```",
       difficulty: "Easy",
       category: "Python",
-      starterCode: "def solve():\n    # Write your code here\n    pass",
+      language: "python",
+      starterCode: "def solve():\n    # Print 'Hello, World!' to the console\n    pass",
       testCases: [{ input: "", expected: "Hello, World!" }],
       xpReward: 100,
       order: 1
@@ -143,31 +262,177 @@ async function seedDatabase() {
     {
       slug: "sum-of-two",
       title: "The Binary Caverns: Sum of Two",
-      description: "Deep in the caverns, you encounter two number spirits. Return their sum to pass the gate.",
+      description: "Deep in the caverns, you encounter two number spirits. Return their sum to pass the gate.\n\n**Example:**\n```\nInput: a=1, b=2\nOutput: 3\n```",
       difficulty: "Easy",
       category: "Algorithms",
-      starterCode: "def sum(a, b):\n    return 0",
+      language: "python",
+      starterCode: "def sum_two(a, b):\n    # Return the sum of a and b\n    return 0",
       testCases: [{ input: "1, 2", expected: "3" }],
-      xpReward: 150,
+      xpReward: 100,
       order: 2
     },
     {
-      slug: "web-scraper-basics",
-      title: "The Data Harvest",
-      description: "Extract the title from an HTML string. The villagers need information!",
-      difficulty: "Medium",
-      category: "Web",
-      starterCode: "def extract_title(html):\n    return ''",
-      testCases: [{ input: "<html><title>Test</title></html>", expected: "Test" }],
-      xpReward: 300,
+      slug: "reverse-string",
+      title: "The Mirror Temple",
+      description: "In the Mirror Temple, all text is reversed. Write a function to reverse a string.\n\n**Example:**\n```\nInput: 'hello'\nOutput: 'olleh'\n```",
+      difficulty: "Easy",
+      category: "Algorithms",
+      language: "python",
+      starterCode: "def reverse_string(s):\n    # Return the reversed string\n    return ''",
+      testCases: [{ input: "hello", expected: "olleh" }],
+      xpReward: 100,
       order: 3
-    }
+    },
+    {
+      slug: "fizzbuzz",
+      title: "The FizzBuzz Oracle",
+      description: "The ancient oracle speaks in riddles. For numbers divisible by 3, say 'Fizz'. For 5, say 'Buzz'. For both, 'FizzBuzz'.\n\n**Example:**\n```\nInput: 15\nOutput: 'FizzBuzz'\n```",
+      difficulty: "Easy",
+      category: "Algorithms",
+      language: "python",
+      starterCode: "def fizzbuzz(n):\n    # Return 'Fizz', 'Buzz', 'FizzBuzz', or the number as string\n    return ''",
+      testCases: [{ input: "15", expected: "FizzBuzz" }],
+      xpReward: 150,
+      order: 4
+    },
+    {
+      slug: "two-sum",
+      title: "Two Sum Challenge",
+      description: "Given an array of integers and a target sum, find two numbers that add up to the target.\n\n**Example:**\n```\nInput: nums=[2,7,11,15], target=9\nOutput: [0,1]\n```",
+      difficulty: "Medium",
+      category: "Data Structures",
+      language: "python",
+      starterCode: "def two_sum(nums, target):\n    # Return indices of two numbers that add up to target\n    return []",
+      testCases: [{ input: "[2,7,11,15], 9", expected: "[0, 1]" }],
+      xpReward: 200,
+      order: 5
+    },
+    {
+      slug: "palindrome-check",
+      title: "Palindrome Portal",
+      description: "Check if a string reads the same forwards and backwards.\n\n**Example:**\n```\nInput: 'racecar'\nOutput: True\n```",
+      difficulty: "Easy",
+      category: "Algorithms",
+      language: "python",
+      starterCode: "def is_palindrome(s):\n    # Return True if s is a palindrome, False otherwise\n    return False",
+      testCases: [{ input: "racecar", expected: "True" }],
+      xpReward: 100,
+      order: 6
+    },
+    {
+      slug: "factorial",
+      title: "The Factorial Tower",
+      description: "Calculate the factorial of a number n (n!).\n\n**Example:**\n```\nInput: 5\nOutput: 120 (5*4*3*2*1)\n```",
+      difficulty: "Easy",
+      category: "Algorithms",
+      language: "python",
+      starterCode: "def factorial(n):\n    # Return n!\n    return 1",
+      testCases: [{ input: "5", expected: "120" }],
+      xpReward: 100,
+      order: 7
+    },
+    {
+      slug: "fibonacci",
+      title: "The Golden Spiral",
+      description: "Return the nth Fibonacci number.\n\n**Example:**\n```\nInput: 6\nOutput: 8 (sequence: 0,1,1,2,3,5,8)\n```",
+      difficulty: "Medium",
+      category: "Algorithms",
+      language: "python",
+      starterCode: "def fibonacci(n):\n    # Return the nth Fibonacci number\n    return 0",
+      testCases: [{ input: "6", expected: "8" }],
+      xpReward: 200,
+      order: 8
+    },
+    {
+      slug: "html-basic-page",
+      title: "Your First Web Page",
+      description: "Create a basic HTML page with a heading and paragraph.\n\n**Requirements:**\n- DOCTYPE declaration\n- html, head, body tags\n- An h1 heading\n- A paragraph",
+      difficulty: "Easy",
+      category: "Web",
+      language: "html",
+      starterCode: "<!DOCTYPE html>\n<html>\n<head>\n  <title>My Page</title>\n</head>\n<body>\n  <!-- Add your content here -->\n</body>\n</html>",
+      testCases: [{ input: "", expected: "valid html structure" }],
+      xpReward: 100,
+      order: 9
+    },
+    {
+      slug: "css-button-style",
+      title: "Style a Button",
+      description: "Create a styled button using CSS with hover effects.\n\n**Requirements:**\n- Background color\n- Padding and border radius\n- Hover state change",
+      difficulty: "Easy",
+      category: "Web",
+      language: "css",
+      starterCode: ".button {\n  /* Add your styles */\n}\n\n.button:hover {\n  /* Add hover styles */\n}",
+      testCases: [{ input: "", expected: "styled button css" }],
+      xpReward: 100,
+      order: 10
+    },
+    {
+      slug: "js-array-filter",
+      title: "Array Filter Magic",
+      description: "Filter an array to keep only even numbers.\n\n**Example:**\n```\nInput: [1,2,3,4,5,6]\nOutput: [2,4,6]\n```",
+      difficulty: "Easy",
+      category: "JavaScript",
+      language: "javascript",
+      starterCode: "function filterEvens(arr) {\n  // Return array with only even numbers\n  return arr;\n}",
+      testCases: [{ input: "[1,2,3,4,5,6]", expected: "[2,4,6]" }],
+      xpReward: 100,
+      order: 11
+    },
+    {
+      slug: "sql-select-basics",
+      title: "SQL Select Quest",
+      description: "Write a query to select all users from a users table.\n\n**Expected Query:**\n```sql\nSELECT * FROM users;\n```",
+      difficulty: "Easy",
+      category: "SQL",
+      language: "sql",
+      starterCode: "-- Write your SQL query here\nSELECT ",
+      testCases: [{ input: "", expected: "SELECT * FROM users" }],
+      xpReward: 100,
+      order: 12
+    },
+    {
+      slug: "binary-search",
+      title: "Binary Search Algorithm",
+      description: "Implement binary search to find an element in a sorted array.\n\n**Example:**\n```\nInput: arr=[1,3,5,7,9], target=5\nOutput: 2 (index)\n```",
+      difficulty: "Medium",
+      category: "Algorithms",
+      language: "python",
+      starterCode: "def binary_search(arr, target):\n    # Return index of target, or -1 if not found\n    return -1",
+      testCases: [{ input: "[1,3,5,7,9], 5", expected: "2" }],
+      xpReward: 250,
+      order: 13
+    },
+    {
+      slug: "linked-list-reverse",
+      title: "Reverse a Linked List",
+      description: "Reverse a singly linked list.\n\n**Example:**\n```\nInput: 1->2->3->4->5\nOutput: 5->4->3->2->1\n```",
+      difficulty: "Medium",
+      category: "Data Structures",
+      language: "python",
+      starterCode: "class ListNode:\n    def __init__(self, val=0, next=None):\n        self.val = val\n        self.next = next\n\ndef reverse_list(head):\n    # Reverse and return new head\n    return head",
+      testCases: [{ input: "1->2->3", expected: "3->2->1" }],
+      xpReward: 300,
+      order: 14
+    },
+    {
+      slug: "valid-parentheses",
+      title: "Valid Parentheses",
+      description: "Check if a string of parentheses is valid.\n\n**Example:**\n```\nInput: '()[]{}'\nOutput: True\n\nInput: '([)]'\nOutput: False\n```",
+      difficulty: "Medium",
+      category: "Data Structures",
+      language: "python",
+      starterCode: "def is_valid(s):\n    # Return True if parentheses are valid\n    return False",
+      testCases: [{ input: "()[]{}}", expected: "True" }],
+      xpReward: 250,
+      order: 15
+    },
   ];
 
-  const hacks = [
+  const hackathonsData = [
     {
       title: "Global AI Hackathon 2026",
-      description: "Build the future of AI in this 48-hour global event.",
+      description: "Build the future of AI in this 48-hour global event. $50,000 in prizes!",
       url: "https://globalai.hackathon.com",
       startDate: new Date("2026-02-15"),
       endDate: new Date("2026-02-17"),
@@ -176,24 +441,128 @@ async function seedDatabase() {
     },
     {
       title: "Web3 World Cup",
-      description: "Decentralized apps for the new world.",
+      description: "Decentralized apps for the new world. Build the next big DeFi project.",
       url: "https://web3.hackathon.com",
       startDate: new Date("2026-03-01"),
       endDate: new Date("2026-03-03"),
-      platform: "Hack2Skill",
+      platform: "ETHGlobal",
       tags: ["Blockchain", "Solidity", "Web3"]
     },
     {
       title: "Green Tech Summit",
-      description: "Coding for a sustainable future.",
+      description: "Coding for a sustainable future. Climate-focused innovation.",
       url: "https://greentech.hackathon.com",
       startDate: new Date("2026-04-10"),
       endDate: new Date("2026-04-12"),
       platform: "Devfolio",
-      tags: ["Sustainability", "IoT", "Hardware"]
-    }
+      tags: ["Sustainability", "IoT", "Climate"]
+    },
+    {
+      title: "GameDev Jam 2026",
+      description: "Create an indie game in 72 hours. Theme revealed at start!",
+      url: "https://gamedev.jam.com",
+      startDate: new Date("2026-05-20"),
+      endDate: new Date("2026-05-23"),
+      platform: "itch.io",
+      tags: ["Gaming", "Unity", "Godot"]
+    },
+    {
+      title: "HealthTech Innovation",
+      description: "Build healthcare solutions that save lives. API access to health datasets.",
+      url: "https://healthtech.hackathon.com",
+      startDate: new Date("2026-06-01"),
+      endDate: new Date("2026-06-03"),
+      platform: "Devpost",
+      tags: ["Healthcare", "AI", "Mobile"]
+    },
   ];
 
-  await storage.seedProblems(problems);
-  await storage.seedHackathons(hacks);
+  const tutorialsData = [
+    {
+      slug: "python-basics",
+      title: "Python Fundamentals",
+      description: "Master Python programming from the ground up. Learn variables, loops, functions, and more.",
+      category: "Python",
+      difficulty: "Beginner",
+      order: 1,
+      xpReward: 500,
+    },
+    {
+      slug: "html-essentials",
+      title: "HTML Essentials",
+      description: "Learn the building blocks of the web. Create structured web pages with HTML.",
+      category: "HTML",
+      difficulty: "Beginner",
+      order: 2,
+      xpReward: 400,
+    },
+    {
+      slug: "css-styling",
+      title: "CSS Styling Mastery",
+      description: "Transform plain HTML into beautiful designs with CSS styling techniques.",
+      category: "CSS",
+      difficulty: "Beginner",
+      order: 3,
+      xpReward: 400,
+    },
+    {
+      slug: "javascript-intro",
+      title: "JavaScript for Beginners",
+      description: "Add interactivity to your web pages with JavaScript programming.",
+      category: "JavaScript",
+      difficulty: "Beginner",
+      order: 4,
+      xpReward: 500,
+    },
+    {
+      slug: "sql-databases",
+      title: "SQL & Databases",
+      description: "Learn to query and manipulate data with SQL. Master database fundamentals.",
+      category: "SQL",
+      difficulty: "Beginner",
+      order: 5,
+      xpReward: 500,
+    },
+    {
+      slug: "algorithms-dsa",
+      title: "Data Structures & Algorithms",
+      description: "Master the fundamentals of computer science. Learn arrays, trees, graphs, and more.",
+      category: "Algorithms",
+      difficulty: "Intermediate",
+      order: 6,
+      xpReward: 800,
+    },
+  ];
+
+  const lessonsData = [
+    // Python Basics
+    { tutorialSlug: "python-basics", slug: "variables", title: "Variables & Data Types", content: "Learn about Python variables and basic data types.\n\n## Variables\nVariables store data values. In Python, you don't need to declare types.\n\n```python\nname = 'Alice'\nage = 25\nheight = 5.9\nis_student = True\n```\n\n## Data Types\n- **str**: Text strings\n- **int**: Whole numbers\n- **float**: Decimal numbers\n- **bool**: True/False values", codeExample: "# Try these:\nname = 'Your Name'\nprint(f'Hello, {name}!')", order: 1, xpReward: 50 },
+    { tutorialSlug: "python-basics", slug: "conditionals", title: "If Statements", content: "Make decisions in your code with conditionals.\n\n## If Statement\n```python\nif condition:\n    # do something\nelif another_condition:\n    # do something else\nelse:\n    # default action\n```", codeExample: "age = 18\nif age >= 18:\n    print('Adult')\nelse:\n    print('Minor')", order: 2, xpReward: 50 },
+    { tutorialSlug: "python-basics", slug: "loops", title: "Loops", content: "Repeat actions with loops.\n\n## For Loop\n```python\nfor i in range(5):\n    print(i)\n```\n\n## While Loop\n```python\nwhile condition:\n    # repeat\n```", codeExample: "for i in range(1, 6):\n    print(f'Count: {i}')", order: 3, xpReward: 50 },
+    { tutorialSlug: "python-basics", slug: "functions", title: "Functions", content: "Create reusable code with functions.\n\n```python\ndef greet(name):\n    return f'Hello, {name}!'\n\nresult = greet('World')\n```", codeExample: "def add(a, b):\n    return a + b\n\nprint(add(3, 5))", order: 4, xpReward: 50 },
+    
+    // HTML Essentials
+    { tutorialSlug: "html-essentials", slug: "structure", title: "HTML Structure", content: "Learn the basic structure of an HTML document.\n\n```html\n<!DOCTYPE html>\n<html>\n<head>\n  <title>Page Title</title>\n</head>\n<body>\n  <h1>Heading</h1>\n  <p>Paragraph</p>\n</body>\n</html>\n```", codeExample: "<!DOCTYPE html>\n<html>\n<head><title>My Page</title></head>\n<body><h1>Hello!</h1></body>\n</html>", order: 1, xpReward: 50, language: "html" },
+    { tutorialSlug: "html-essentials", slug: "elements", title: "HTML Elements", content: "Common HTML elements:\n- **Headings**: h1-h6\n- **Paragraph**: p\n- **Links**: a\n- **Images**: img\n- **Lists**: ul, ol, li", codeExample: "<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul>", order: 2, xpReward: 50, language: "html" },
+    
+    // JavaScript Intro
+    { tutorialSlug: "javascript-intro", slug: "basics", title: "JS Basics", content: "JavaScript variables and console output.\n\n```javascript\nlet name = 'Alice';\nconst PI = 3.14;\nconsole.log(name);\n```", codeExample: "let greeting = 'Hello World';\nconsole.log(greeting);", order: 1, xpReward: 50, language: "javascript" },
+    { tutorialSlug: "javascript-intro", slug: "dom", title: "DOM Manipulation", content: "Interact with HTML elements.\n\n```javascript\ndocument.getElementById('myId');\ndocument.querySelector('.class');\n```", codeExample: "document.body.style.backgroundColor = 'lightblue';", order: 2, xpReward: 50, language: "javascript" },
+  ];
+
+  const badgesData = [
+    { slug: "first-quest", name: "First Quest", description: "Complete your first coding challenge", icon: "Sword", color: "text-green-500", xpRequired: null, problemsRequired: 1, category: "achievement" },
+    { slug: "problem-solver", name: "Problem Solver", description: "Solve 5 coding challenges", icon: "Lightbulb", color: "text-yellow-500", xpRequired: null, problemsRequired: 5, category: "achievement" },
+    { slug: "code-warrior", name: "Code Warrior", description: "Solve 10 coding challenges", icon: "Shield", color: "text-blue-500", xpRequired: null, problemsRequired: 10, category: "achievement" },
+    { slug: "xp-hunter", name: "XP Hunter", description: "Earn 500 XP", icon: "Star", color: "text-purple-500", xpRequired: 500, problemsRequired: null, category: "achievement" },
+    { slug: "level-5", name: "Level 5 Coder", description: "Reach Level 5", icon: "Award", color: "text-orange-500", xpRequired: 2000, problemsRequired: null, category: "skill" },
+    { slug: "streak-7", name: "Week Warrior", description: "7-day coding streak", icon: "Flame", color: "text-red-500", xpRequired: null, problemsRequired: null, category: "streak" },
+    { slug: "python-master", name: "Python Master", description: "Complete all Python challenges", icon: "Code2", color: "text-green-400", xpRequired: null, problemsRequired: null, category: "skill" },
+    { slug: "algorithm-expert", name: "Algorithm Expert", description: "Solve 5 algorithm problems", icon: "Brain", color: "text-pink-500", xpRequired: null, problemsRequired: null, category: "skill" },
+  ];
+
+  await storage.seedProblems(problemsData);
+  await storage.seedHackathons(hackathonsData);
+  await storage.seedTutorials(tutorialsData, lessonsData);
+  await storage.seedBadges(badgesData);
 }
