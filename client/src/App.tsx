@@ -117,9 +117,7 @@ function Router() {
         <ProtectedRoute component={Admin} />
       </Route>
 
-      <Route path="/pricing">
-        <ProtectedRoute component={Pricing} />
-      </Route>
+      <Route path="/pricing" component={Pricing} />
 
       <Route path="/club/success">
         <ProtectedRoute component={ClubSuccess} />
