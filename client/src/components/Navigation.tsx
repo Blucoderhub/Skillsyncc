@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useUserStats } from "@/hooks/use-user-stats";
 import { useQuery } from "@tanstack/react-query";
-import { Code2, Swords, Trophy, LogOut, Terminal, Map, BookOpen, MessageSquare, Calendar, Shield } from "lucide-react";
+import { Code2, Swords, Trophy, LogOut, Terminal, Map, BookOpen, MessageSquare, Calendar, Shield, Crown, Award, Folder, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Navigation() {
@@ -20,6 +20,7 @@ export function Navigation() {
     { href: "/quests", label: "Quests", icon: Swords },
     { href: "/tutorials", label: "Learn", icon: BookOpen },
     { href: "/practice", label: "Practice", icon: Code2 },
+    { href: "/challenges", label: "Challenges", icon: Target },
     { href: "/hackathons", label: "Hackathons", icon: Calendar },
     { href: "/discussions", label: "Community", icon: MessageSquare },
     { href: "/leaderboard", label: "Ranks", icon: Trophy },

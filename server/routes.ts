@@ -7,6 +7,7 @@ import { registerChatRoutes } from "./replit_integrations/chat";
 import { registerImageRoutes } from "./replit_integrations/image";
 import { registerAudioRoutes } from "./replit_integrations/audio";
 import { registerAdminRoutes } from "./admin-routes";
+import { initStripe, registerStripeRoutes, registerStripeWebhookRoute } from "./stripe/stripeRoutes";
 import { z } from "zod";
 
 export async function registerRoutes(
@@ -17,15 +18,19 @@ export async function registerRoutes(
   await setupAuth(app);
   registerAuthRoutes(app);
   
-  // 2. Setup AI Integrations
+  // 2. Setup Stripe (initialize and register routes)
+  await initStripe();
+  registerStripeRoutes(app);
+  
+  // 3. Setup AI Integrations
   registerChatRoutes(app);
   registerImageRoutes(app);
   registerAudioRoutes(app);
   
-  // 3. Setup Admin Routes
+  // 4. Setup Admin Routes
   registerAdminRoutes(app);
 
-  // 3. Application Routes
+  // 5. Application Routes
 
   // Problems List with filters
   app.get(api.problems.list.path, async (req: any, res) => {

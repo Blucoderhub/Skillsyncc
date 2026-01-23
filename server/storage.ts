@@ -460,6 +460,28 @@ export class DatabaseStorage implements IStorage {
     await db.delete(submissions).where(eq(submissions.problemId, id));
     await db.delete(problems).where(eq(problems.id, id));
   }
+
+  // --- STRIPE / MEMBERSHIP METHODS ---
+  
+  async updateUserStripeInfo(userId: string, info: {
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
+    membershipStatus?: string;
+    membershipTier?: string;
+    membershipExpiresAt?: Date;
+  }): Promise<User | undefined> {
+    const [user] = await db.update(users)
+      .set({ ...info, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async getClubMembers(): Promise<User[]> {
+    return await db.select().from(users)
+      .where(eq(users.membershipStatus, 'active'))
+      .orderBy(desc(users.createdAt));
+  }
 }
 
 export const storage = new DatabaseStorage();

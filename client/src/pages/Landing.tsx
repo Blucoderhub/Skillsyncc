@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Terminal, Code2, Swords, Trophy, BookOpen, 
   MessageSquare, Calendar, Shield, Zap, 
-  Globe, LayoutGrid, Rocket, Target, Users
+  Globe, LayoutGrid, Rocket, Target, Users, Crown, Quote, Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -160,6 +160,108 @@ export default function Landing() {
             ))}
           </div>
         </div>
+
+        {/* Success Stories Section */}
+        <section className="py-16 border-t border-white/5">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-bold mb-4 tracking-widest uppercase">
+              <Star className="w-3 h-3" /> Success Stories
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Our Learners <span className="text-primary">Level Up</span>
+            </h2>
+            <p className="text-gray-400 max-w-xl mx-auto">
+              From beginners to professionals, see how our community transforms their careers
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {[
+              {
+                name: "Alan Geirnaert",
+                flag: "France",
+                role: "Fullstack Developer at App'Ines",
+                quote: "I completed every course, project tutorial, and code challenge... Five months later, I landed a real internship as a Fullstack Developer.",
+                highlight: "Retail to Tech"
+              },
+              {
+                name: "Moses James",
+                flag: "USA",
+                role: "Software Developer at Deloitte",
+                quote: "After winning 1st place at the Holiday Hackathon, everything changed. Five months later, I landed my first tech job at Deloitte.",
+                highlight: "Hackathon Winner"
+              },
+              {
+                name: "Anjali Sharma",
+                flag: "India",
+                role: "Fullstack Developer at Noida",
+                quote: "I met with incredible mentors who reviewed my resume and encouraged me. I've genuinely fallen in love with the platform.",
+                highlight: "Career Changer"
+              },
+            ].map((story, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * idx }}
+              >
+                <Card className="bg-white/5 border-white/10 backdrop-blur-xl h-full">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold">
+                        {story.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-medium text-white text-sm">{story.name}</p>
+                        <p className="text-xs text-gray-500">{story.flag}</p>
+                      </div>
+                    </div>
+                    <div className="mb-3">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-bold">
+                        {story.highlight}
+                      </span>
+                    </div>
+                    <p className="text-gray-400 text-sm mb-4 italic">"{story.quote}"</p>
+                    <p className="text-xs text-gray-500">{story.role}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Club CTA Section */}
+        <section className="py-16 border-t border-white/5">
+          <Card className="bg-gradient-to-r from-primary/20 to-secondary/20 border-primary/30 backdrop-blur-xl max-w-4xl mx-auto">
+            <CardContent className="py-12 px-8 text-center">
+              <div className="inline-flex items-center gap-2 mb-4">
+                <Crown className="w-8 h-8 text-primary" />
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold mb-4">Join the Club</h2>
+              <p className="text-gray-400 max-w-2xl mx-auto mb-8">
+                Make your career change to tech with unlimited access to learning content, 
+                Club-only perks, and personalized support. Starting at just $9.99/month.
+              </p>
+              <div className="flex flex-wrap justify-center gap-4 mb-8">
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <BookOpen className="w-4 h-4 text-primary" /> All Courses
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <Trophy className="w-4 h-4 text-primary" /> Certificates
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <MessageSquare className="w-4 h-4 text-primary" /> Code Mentors
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <Zap className="w-4 h-4 text-primary" /> Unlimited AI
+                </div>
+              </div>
+              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white px-8">
+                <Link href="/pricing">View Pricing</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </section>
 
         {/* Footer Stats */}
         <footer className="mt-auto pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-gray-500 pb-8">

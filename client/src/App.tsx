@@ -21,6 +21,11 @@ import DiscussionDetail from "@/pages/DiscussionDetail";
 import Leaderboard from "@/pages/Leaderboard";
 import Profile from "@/pages/Profile";
 import Admin from "@/pages/Admin";
+import Pricing from "@/pages/Pricing";
+import ClubSuccess from "@/pages/ClubSuccess";
+import Certificates from "@/pages/Certificates";
+import Portfolio from "@/pages/Portfolio";
+import Challenges from "@/pages/Challenges";
 import NotFound from "@/pages/not-found";
 
 // Protected Route Wrapper
@@ -110,6 +115,26 @@ function Router() {
 
       <Route path="/admin">
         <ProtectedRoute component={Admin} />
+      </Route>
+
+      <Route path="/pricing">
+        <ProtectedRoute component={Pricing} />
+      </Route>
+
+      <Route path="/club/success">
+        <ProtectedRoute component={ClubSuccess} />
+      </Route>
+
+      <Route path="/certificates">
+        <ProtectedRoute component={Certificates} />
+      </Route>
+
+      <Route path="/portfolio">
+        <ProtectedRoute component={Portfolio} />
+      </Route>
+
+      <Route path="/challenges">
+        <ProtectedRoute component={Challenges} />
       </Route>
 
       <Route component={NotFound} />
