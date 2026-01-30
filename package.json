@@ -1,0 +1,33 @@
+{
+  "name": "job-application-copilot",
+  "version": "1.0.0",
+  "description": "AI-powered job application assistant browser extension",
+  "type": "module",
+  "scripts": {
+    "build": "npm run build:popup && npm run build:options && npm run build:content && npm run build:background && npm run build:copy",
+    "build:popup": "vite build --config vite.popup.config.ts",
+    "build:options": "vite build --config vite.options.config.ts",
+    "build:content": "vite build --config vite.content.config.ts",
+    "build:background": "vite build --config vite.background.config.ts",
+    "build:copy": "node scripts/copy-assets.js",
+    "create-icons": "node scripts/create-icons.js",
+    "dev": "vite",
+    "watch": "npm run build -- --watch"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "lucide-react": "^0.294.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.251",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.3.6",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8"
+  }
+}
