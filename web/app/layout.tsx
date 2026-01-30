@@ -23,11 +23,11 @@ export const metadata: Metadata = {
     openGraph: {
         title: "Skillsyncc | AI Career Copilot for the Expert Era",
         description: "The world's most powerful AI job application assistant. Align, tailored, and land your dream role with expert precision.",
-        url: "https://skillsyncc.com",
+        url: typeof process.env.NEXT_PUBLIC_SITE_URL !== 'undefined' ? process.env.NEXT_PUBLIC_SITE_URL : 'https://skillsyncc-eta.vercel.app/',
         siteName: "Skillsyncc",
         images: [
             {
-                url: "/og-image.jpg", // Add your og image
+                url: typeof process.env.NEXT_PUBLIC_SITE_URL !== 'undefined' ? `${process.env.NEXT_PUBLIC_SITE_URL}/og-image.jpg` : 'https://skillsyncc-eta.vercel.app/og-image.jpg', // Add your og image
                 width: 1200,
                 height: 630,
             },
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
         card: "summary_large_image",
         title: "Skillsyncc | AI Career Copilot for the Expert Era",
         description: "The world's most powerful AI job application assistant.",
-        images: ["/twitter-image.jpg"], // Add your twitter image
+        images: [typeof process.env.NEXT_PUBLIC_SITE_URL !== 'undefined' ? `${process.env.NEXT_PUBLIC_SITE_URL}/twitter-image.jpg` : 'https://skillsyncc-eta.vercel.app/twitter-image.jpg'], // Add your twitter image
     },
     robots: {
         index: true,
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
         },
     },
     alternates: {
-        canonical: 'https://skillsyncc.com',
+        canonical: typeof process.env.NEXT_PUBLIC_SITE_URL !== 'undefined' ? process.env.NEXT_PUBLIC_SITE_URL : 'https://skillsyncc-eta.vercel.app/',
     },
     icons: {
         icon: '/favicon.ico',
