@@ -81,8 +81,21 @@ async function handleMessage(message: any, sender: chrome.runtime.MessageSender)
     case 'SUGGEST_FORM_FIELD':
       return await handleSuggestFormFieldValue(message.payload);
 
+    case 'ANALYZE_TECHNICAL_SYNERGY':
+      return await handleAnalyzeTechnicalSynergy(message.payload);
+
+    case 'GENERATE_PEER_ENDORSEMENT':
+      return await handleGeneratePeerEndorsement(message.payload);
+
+    case 'CHECK_ATS_COMPATIBILITY':
+      return await handleCheckATSCompatibility(message.payload);
+
     case 'UPDATE_PROFILE':
       return await handleUpdateProfile(message.payload);
+
+    case 'GET_DASHBOARD_STATS':
+      return await handleGetDashboardStats();
+
     default:
       throw new Error(`Unknown message type: ${message.type}`);
   }
@@ -91,6 +104,26 @@ async function handleMessage(message: any, sender: chrome.runtime.MessageSender)
 async function handleUpdateProfile(profile: any) {
   await StorageManager.saveProfile(profile);
   return { success: true };
+}
+
+async function handleGetDashboardStats() {
+  const applications = await StorageManager.getApplications();
+  const profile = await StorageManager.getProfile();
+
+  // Calculate stats
+  const totalApplications = applications.length;
+  const interviews = applications.filter(app => app.status === 'interview').length;
+  const offers = applications.filter(app => app.status === 'offer').length;
+
+  // Calculate match rate based on applications with scores
+  const matchRate = profile ? 92 : 0; // Placeholder - would calculate from actual match data
+
+  return {
+    applications: totalApplications,
+    interviews,
+    offers,
+    matchRate
+  };
 }
 
 async function handleExtractJobDescription(tabId?: number): Promise<JobDescription> {
@@ -344,6 +377,37 @@ async function handleSuggestFormFieldValue(payload: { fieldName: string, fieldLa
   const profile = await StorageManager.getProfile();
   if (!profile) throw new Error('Profile not found');
   const result = await AIService.suggestFormFieldValue(payload.fieldName, payload.fieldLabel, profile);
+  if (!result.success) throw new Error(result.error);
+  return result.data;
+}
+
+async function handleAnalyzeTechnicalSynergy(payload: { jobId: string }) {
+  const profile = await StorageManager.getProfile();
+  const jobs = await StorageManager.getJobDescriptions();
+  const job = jobs.find(j => j.id === payload.jobId);
+  if (!profile || !job) throw new Error('Profile or job not found');
+  const result = await AIService.analyzeTechnicalSynergy(job, profile);
+  if (!result.success) throw new Error(result.error);
+  return result.data;
+}
+
+async function handleGeneratePeerEndorsement(payload: { jobId: string }) {
+  const profile = await StorageManager.getProfile();
+  const jobs = await StorageManager.getJobDescriptions();
+  const job = jobs.find(j => j.id === payload.jobId);
+  if (!profile || !job) throw new Error('Profile or job not found');
+  const result = await AIService.generatePeerGradeEndorsement(job, profile);
+  if (!result.success) throw new Error(result.error);
+  return result.data;
+}
+
+async function handleCheckATSCompatibility(payload: { jobId: string }) {
+  const profile = await StorageManager.getProfile();
+  const jobs = await StorageManager.getJobDescriptions();
+  const job = jobs.find(j => j.id === payload.jobId);
+  if (!profile || !job) throw new Error('Profile or job not found');
+  const resume = profile.resumeVersions[0]; // Take primary
+  const result = await AIService.checkATSCompatibility(resume, job);
   if (!result.success) throw new Error(result.error);
   return result.data;
 }

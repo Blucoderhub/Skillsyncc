@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Job Application Copilot Dashboard</title>
+  <style>
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --bg-card: rgba(30, 30, 30, 0.7);
+      --glass-bg: rgba(30, 30, 30, 0.3);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0b0;
+      --accent-blue: #007aff;
+      --accent-purple: #af52de;
+      --accent-green: #34c759;
+      --accent-yellow: #ffcc00;
+      --border-radius: 20px;
+      --glass-blur: 20px;
+      --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 20px;
+      background: radial-gradient(ellipse at 70% 70%, rgba(99, 102, 241, 0.15), transparent 70%);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 20px;
+      background: var(--glass-bg);
+      border-radius: var(--border-radius);
+      backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-glass);
+    }
+
+    .header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple), var(--accent-green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      opacity: 0.9;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: var(--glass-bg);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-glass);
+      transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .feature-card {
+      background: var(--glass-bg);
+      border-radius: 20px;
+      padding: 28px;
+      backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-glass);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-top: 40px;
+      background: var(--glass-bg);
+      border-radius: var(--border-radius);
+      backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🚀 Job Application Copilot Dashboard</h1>
+    <p>Your AI-powered career advancement suite</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">24</div>
+      <div class="stat-label">Applications</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">8</div>
+      <div class="stat-label">Interviews</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">3</div>
+      <div class="stat-label">Offers</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">92%</div>
+      <div class="stat-label">Match Rate</div>
+    </div>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card" onclick="openFeature('resume-optimizer.html')">
+      <h3>📄 Resume Optimizer</h3>
+      <p>Optimize your resume for specific job descriptions using AI. Automatically incorporate relevant keywords and improve ATS compatibility.</p>
+      <button class="btn">Launch Optimizer</button>
+    </div>
+
+    <div class="feature-card" onclick="openFeature('ats-resume-optimizer.html')">
+      <h3>🛡️ ATS Defender</h3>
+      <p>Upload your current resume and get it optimized for any job description. Our defensive AI ensures maximum ATS compatibility.</p>
+      <button class="btn">Launch Defender</button>
+    </div>
+
+    <div class="feature-card" onclick="openFeature('auto-ats-optimizer.html')">
+      <h3>🤖 Auto ATS Optimizer</h3>
+      <p>Automatically extract job descriptions from the current page and optimize your resume instantly. Just like Weekday's AI.</p>
+      <button class="btn">Launch Auto Optimizer</button>
+    </div>
+
+    <div class="feature-card" onclick="openFeature('job-analyzer.html')">
+      <h3>🔍 Job Analyzer</h3>
+      <p>Analyze job requirements and match them with your skills. Get personalized recommendations for improvement.</p>
+      <button class="btn">Launch Analyzer</button>
+    </div>
+
+    <div class="feature-card" onclick="openFeature('autofill.html')">
+      <h3>⚡ Auto-Fill Forms</h3>
+      <p>Automatically fill application forms with your profile data. Save time on repetitive job applications.</p>
+      <button class="btn">Launch Auto-Fill</button>
+    </div>
+
+    <div class="feature-card" onclick="openFeature('application-tracker.html')">
+      <h3>📊 Application Tracker</h3>
+      <p>Track all your job applications in one place. Monitor status, deadlines, and outcomes.</p>
+      <button class="btn">Launch Tracker</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>Job Application Copilot v1.0 • Powered by AI • Always improving</p>
+  </div>
+
+  <script>
+    function openFeature(featureFile) {
+      window.open(chrome.runtime.getURL(`features/${featureFile}`), '_blank');
+    }
+  </script>
+</body>
+</html>

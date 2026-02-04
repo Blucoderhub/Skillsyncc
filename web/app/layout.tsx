@@ -73,10 +73,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
 };
 
 export default function RootLayout({
@@ -85,9 +85,8 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
-            <body className="antialiased bg-gradient-to-br from-gray-50 to-gray-100">
-                <div className="fixed inset-0 bg-gradient-to-br from-indigo-50 via-white to-teal-50 pointer-events-none -z-10" />
+        <html lang="en" className="dark scroll-smooth">
+            <body className="antialiased bg-[#0A0A0B] selection:bg-[#FFD700] selection:text-black">
                 {children}
             </body>
         </html>

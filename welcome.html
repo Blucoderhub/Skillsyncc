@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Welcome to Job Application Copilot</title>
+  <style>
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --bg-card: rgba(30, 30, 30, 0.7);
+      --glass-bg: rgba(30, 30, 30, 0.3);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0b0;
+      --accent-blue: #007aff;
+      --accent-purple: #af52de;
+      --accent-green: #34c759;
+      --accent-yellow: #ffcc00;
+      --border-radius: 20px;
+      --glass-blur: 20px;
+      --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at 70% 70%, rgba(99, 102, 241, 0.15), transparent 70%);
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      background: var(--glass-bg);
+      border-radius: var(--border-radius);
+      padding: 40px;
+      backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-glass);
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    p {
+      font-size: 18px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 40px 0;
+    }
+
+    .feature {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 16px;
+      text-align: left;
+    }
+
+    .feature h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .feature p {
+      font-size: 14px;
+      margin-bottom: 0;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 20px;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">🚀</div>
+    <h1>Welcome to Job Application Copilot</h1>
+    <p>Your AI-powered assistant for job applications. Automate your job search, optimize your resume, and land more interviews.</p>
+    
+    <div class="features">
+      <div class="feature">
+        <h3>📄 Resume Optimizer</h3>
+        <p>AI-powered resume optimization for specific job descriptions</p>
+      </div>
+      <div class="feature">
+        <h3>🤖 ATS Defender</h3>
+        <p>Defensive AI that makes your resume ATS-friendly</p>
+      </div>
+      <div class="feature">
+        <h3>🔍 Job Analyzer</h3>
+        <p>Analyze job requirements and match with your skills</p>
+      </div>
+      <div class="feature">
+        <h3>⚡ Auto-Fill Forms</h3>
+        <p>Automatically fill application forms with your data</p>
+      </div>
+    </div>
+    
+    <p>Get started by clicking the extension icon or configuring your settings.</p>
+    
+    <a href="#" class="btn" onclick="openOptions()">Configure Settings</a>
+    <a href="#" class="btn" onclick="openDashboard()" style="background: linear-gradient(135deg, var(--accent-green), var(--accent-blue)); margin-left: 15px;">Open Dashboard</a>
+  </div>
+
+  <script>
+    function openOptions() {
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        chrome.runtime.openOptionsPage();
+      } else {
+        alert('Options page can only be opened from the extension');
+      }
+    }
+    
+    function openDashboard() {
+      window.open(chrome.runtime.getURL('dashboard.html'), '_blank');
+    }
+  </script>
+</body>
+</html>

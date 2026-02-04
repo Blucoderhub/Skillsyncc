@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Application Tracker - Job Copilot</title>
+  <style>
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --bg-tertiary: #2a2a2a;
+      --bg-card: rgba(30, 30, 30, 0.7);
+      --bg-card-hover: rgba(40, 40, 40, 0.7);
+      --glass-bg: rgba(30, 30, 30, 0.3);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0b0;
+      --accent-green: #34c759;
+      --accent-green-hover: #4cd964;
+      --accent-blue: #007aff;
+      --accent-orange: #ff9500;
+      --accent-red: #ff3b30;
+      --border-radius: 20px;
+      --glass-blur: 20px;
+      --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius);
+      padding: 40px;
+      backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--shadow-glass);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at center, rgba(52, 199, 89, 0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    
+    .header h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .header p {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      position: relative;
+      z-index: 1;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    
+    .stat-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius);
+      padding: 32px;
+      text-align: center;
+      box-shadow: var(--shadow-glass);
+      backdrop-filter: blur(var(--glass-blur));
+      transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(52, 199, 89, 0.3);
+    }
+    
+    .stat-number {
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius);
+      padding: 32px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--shadow-glass);
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(52, 199, 89, 0.3);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    
+    .form-group {
+      margin-bottom: 24px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 12px;
+      font-weight: 500;
+      color: var(--text-primary);
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    input, select, textarea {
+      width: 100%;
+      padding: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-size: 16px;
+      box-sizing: border-box;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent-green);
+      box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.2);
+    }
+    
+    .btn {
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-right: 12px;
+      box-shadow: 0 4px 20px rgba(52, 199, 89, 0.3);
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(52, 199, 89, 0.4);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .btn:disabled {
+      background: var(--bg-tertiary);
+      cursor: not-allowed;
+      opacity: 0.5;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, var(--accent-green), #58d470);
+      box-shadow: 0 4px 20px rgba(52, 199, 89, 0.3);
+    }
+    
+    .btn-success:hover {
+      box-shadow: 0 6px 25px rgba(52, 199, 89, 0.4);
+    }
+    
+    .btn-warning {
+      background: linear-gradient(135deg, var(--accent-orange), #ffaa33);
+      box-shadow: 0 4px 20px rgba(255, 149, 0, 0.3);
+    }
+    
+    .btn-warning:hover {
+      box-shadow: 0 6px 25px rgba(255, 149, 0, 0.4);
+    }
+    
+    .applications-list {
+      margin-top: 24px;
+    }
+    
+    .application-item {
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    
+    .application-item:hover {
+      border-color: rgba(52, 199, 89, 0.3);
+    }
+    
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .app-title {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 16px;
+    }
+    
+    .app-status {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .status-applied {
+      background: rgba(0, 122, 255, 0.2);
+      color: var(--accent-blue);
+      border: 1px solid rgba(0, 122, 255, 0.3);
+    }
+    
+    .status-interview {
+      background: rgba(255, 149, 0, 0.2);
+      color: var(--accent-orange);
+      border: 1px solid rgba(255, 149, 0, 0.3);
+    }
+    
+    .status-offer {
+      background: rgba(52, 199, 89, 0.2);
+      color: var(--accent-green);
+      border: 1px solid rgba(52, 199, 89, 0.3);
+    }
+    
+    .status-rejected {
+      background: rgba(255, 59, 48, 0.2);
+      color: var(--accent-red);
+      border: 1px solid rgba(255, 59, 48, 0.3);
+    }
+    
+    .app-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+    
+    .app-actions {
+      margin-top: 16px;
+      display: flex;
+      gap: 12px;
+    }
+    
+    .btn-small {
+      padding: 8px 16px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 Application Tracker</h1>
+      <p>Monitor your job application progress</p>
+    </div>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number" id="total-applications">0</div>
+        <div class="stat-label">Total Applications</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="applied-count">0</div>
+        <div class="stat-label">Applied</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="interview-count">0</div>
+        <div class="stat-label">Interviews</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="offer-count">0</div>
+        <div class="stat-label">Offers</div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Add New Application</h2>
+      <div class="form-grid">
+        <div>
+          <div class="form-group">
+            <label for="job-title">Job Title</label>
+            <input type="text" id="job-title" placeholder="e.g., Senior Software Engineer">
+          </div>
+          
+          <div class="form-group">
+            <label for="company">Company</label>
+            <input type="text" id="company" placeholder="e.g., Google">
+          </div>
+          
+          <div class="form-group">
+            <label for="location">Location</label>
+            <input type="text" id="location" placeholder="e.g., Remote, New York">
+          </div>
+        </div>
+        
+        <div>
+          <div class="form-group">
+            <label for="status">Status</label>
+            <select id="status">
+              <option value="applied">Applied</option>
+              <option value="interview">Interview Scheduled</option>
+              <option value="offer">Offer Received</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="date-applied">Date Applied</label>
+            <input type="date" id="date-applied">
+          </div>
+          
+          <div class="form-group">
+            <label for="salary">Salary Range</label>
+            <input type="text" id="salary" placeholder="e.g., $120k - $150k">
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="job-url">Job Posting URL</label>
+        <input type="url" id="job-url" placeholder="https://...">
+      </div>
+      
+      <div class="form-group">
+        <label for="notes">Notes</label>
+        <textarea id="notes" placeholder="Additional notes about this application..."></textarea>
+      </div>
+      
+      <button class="btn btn-success" id="add-btn">Add Application</button>
+    </div>
+    
+    <div class="card">
+      <h2>Your Applications</h2>
+      <div class="applications-list" id="applications-list">
+        <p id="no-applications">No applications tracked yet. Add your first application above!</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="../features/application-tracker.js"></script>
+</body>
+</html>

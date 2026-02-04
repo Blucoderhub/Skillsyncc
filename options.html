@@ -1,12 +1,156 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Job Application Copilot - Settings</title>
+  <meta charset="utf-8">
+  <title>Job Copilot Settings</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f9fafb;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    
+    .header h1 {
+      color: #1f2937;
+      margin-bottom: 8px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #374151;
+    }
+    
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+    
+    .btn {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .btn:hover {
+      background: #4f46e5;
+    }
+    
+    .btn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    
+    .status {
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 16px;
+      text-align: center;
+      display: none;
+    }
+    
+    .status.success {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+  </style>
 </head>
 <body>
-  <div id="options-root"></div>
-  <script type="module" src="./src/options/index.tsx"></script>
+  <div class="header">
+    <h1>⚙️ Job Copilot Settings</h1>
+    <p>Configure your AI-powered job application assistant</p>
+  </div>
+  
+  <div class="card">
+    <h2>API Configuration</h2>
+    <div class="form-group">
+      <label for="openai-key">OpenAI API Key</label>
+      <input type="password" id="openai-key" placeholder="sk-...">
+    </div>
+    
+    <div class="form-group">
+      <label for="anthropic-key">Anthropic (Claude) API Key</label>
+      <input type="password" id="anthropic-key" placeholder="sk-ant-...">
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>AI Model Settings</h2>
+    <div class="form-group">
+      <label for="anthropic-model">Claude Model</label>
+      <select id="anthropic-model">
+        <option value="claude-3-haiku-20240307">Haiku (Fast & Cheap)</option>
+        <option value="claude-3-sonnet-20240229" selected>Sonnet (Balanced)</option>
+        <option value="claude-3-opus-20240229">Opus (Most Capable)</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="openai-model">OpenAI Model</label>
+      <select id="openai-model">
+        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+        <option value="gpt-4" selected>GPT-4</option>
+        <option value="gpt-4-turbo">GPT-4 Turbo</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>Auto-Fill Settings</h2>
+    <div class="form-group">
+      <label for="auto-fill-delay">Auto-fill Delay (ms)</label>
+      <input type="number" id="auto-fill-delay" value="500" min="0" max="5000">
+    </div>
+    
+    <div class="form-group">
+      <label>
+        <input type="checkbox" id="enable-auto-fill" checked>
+        Enable Auto-fill Feature
+      </label>
+    </div>
+  </div>
+  
+  <button class="btn" id="save-settings">Save Settings</button>
+  
+  <div id="status-message" class="status"></div>
+
+  <script src="options.js"></script>
 </body>
 </html>

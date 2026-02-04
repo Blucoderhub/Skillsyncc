@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ATS Resume Optimizer - Job Copilot</title>
+  <style>
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --bg-tertiary: #2a2a2a;
+      --bg-card: rgba(30, 30, 30, 0.7);
+      --bg-card-hover: rgba(40, 40, 40, 0.7);
+      --glass-bg: rgba(30, 30, 30, 0.3);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0b0;
+      --accent-blue: #007aff;
+      --accent-blue-hover: #00aaff;
+      --accent-green: #34c759;
+      --accent-green-hover: #4cd964;
+      --accent-purple: #af52de;
+      --border-radius: 20px;
+      --glass-blur: 20px;
+      --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius);
+      padding: 40px;
+      backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--shadow-glass);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at center, rgba(0, 122, 255, 0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    
+    .header h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .header p {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      position: relative;
+      z-index: 1;
+    }
+    
+    .card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius);
+      padding: 32px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--shadow-glass);
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(0, 122, 255, 0.3);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+    
+    .upload-section {
+      border: 2px dashed var(--accent-blue);
+      border-radius: var(--border-radius);
+      padding: 40px;
+      text-align: center;
+      background: rgba(0, 122, 255, 0.05);
+      margin-bottom: 32px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    
+    .upload-section:hover {
+      background: rgba(0, 122, 255, 0.1);
+      border-color: var(--accent-blue-hover);
+    }
+    
+    .upload-section.dragover {
+      background: rgba(0, 122, 255, 0.2);
+      border-color: var(--accent-blue-hover);
+      transform: scale(1.02);
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .upload-btn {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 16px 0;
+      box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
+    }
+    
+    .upload-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(0, 122, 255, 0.4);
+    }
+    
+    .upload-btn:active {
+      transform: translateY(0);
+    }
+    
+    .file-info {
+      margin-top: 20px;
+      padding: 16px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      display: none;
+    }
+    
+    .form-group {
+      margin-bottom: 24px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 12px;
+      font-weight: 500;
+      color: var(--text-primary);
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    textarea, input, select {
+      width: 100%;
+      padding: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-size: 16px;
+      box-sizing: border-box;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+    
+    textarea {
+      min-height: 200px;
+      resize: vertical;
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+    }
+    
+    textarea:focus, input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+    }
+    
+    .btn {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-right: 12px;
+      box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(0, 122, 255, 0.4);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .btn:disabled {
+      background: var(--bg-tertiary);
+      cursor: not-allowed;
+      opacity: 0.5;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, var(--accent-green), #58d470);
+      box-shadow: 0 4px 20px rgba(52, 199, 89, 0.3);
+    }
+    
+    .btn-success:hover {
+      box-shadow: 0 6px 25px rgba(52, 199, 89, 0.4);
+    }
+    
+    .ats-analysis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin: 32px 0;
+    }
+    
+    .ats-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius);
+      padding: 24px;
+      backdrop-filter: blur(15px);
+      transition: all 0.3s ease;
+    }
+    
+    .ats-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(0, 122, 255, 0.3);
+    }
+    
+    .ats-card h3 {
+      margin-top: 0;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .ats-score {
+      font-size: 3rem;
+      font-weight: 700;
+      text-align: center;
+      margin: 20px 0;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 60px;
+      display: none;
+      background: var(--glass-bg);
+      border-radius: var(--border-radius);
+      backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      margin: 40px 0;
+    }
+    
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top: 4px solid var(--accent-blue);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 24px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .result {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius);
+      padding: 32px;
+      margin-top: 32px;
+      display: none;
+      backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--shadow-glass);
+    }
+    
+    .result h3 {
+      margin-top: 0;
+      color: var(--text-primary);
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    
+    .diff-section {
+      background: var(--bg-card);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      font-family: 'SF Mono', 'Monaco', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .keyword-highlight {
+      background: rgba(255, 235, 59, 0.2);
+      color: #ffeb3b;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    
+    .ats-tip {
+      background: rgba(0, 122, 255, 0.1);
+      border: 1px solid rgba(0, 122, 255, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      font-size: 14px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .ats-tip h4 {
+      margin-top: 0;
+      color: var(--accent-blue);
+      margin-bottom: 12px;
+    }
+    
+    .improvements-list {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .improvements-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+    }
+    
+    .improvements-list li:last-child {
+      border-bottom: none;
+    }
+    
+    .improvements-list li::before {
+      content: '✓';
+      color: var(--accent-green);
+      margin-right: 12px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🛡️ ATS Resume Defender</h1>
+      <p>Advanced AI-powered resume optimization for maximum ATS compatibility</p>
+    </div>
+    
+    <div class="card">
+      <h2>📤 Upload Your Current Resume</h2>
+      <div class="upload-section" id="upload-area">
+        <div id="upload-content">
+          <h3>📄 Drop your resume file here</h3>
+          <p>Supported formats: PDF, DOCX, TXT (Max 5MB)</p>
+          <button class="upload-btn" id="browse-btn">Browse Files</button>
+          <input type="file" class="file-input" id="resume-file" accept=".pdf,.docx,.txt">
+        </div>
+        <div class="file-info" id="file-info">
+          <strong>Selected file:</strong> <span id="file-name"></span>
+          <br><strong>Size:</strong> <span id="file-size"></span>
+        </div>
+      </div>
+      
+      <div class="ats-tip">
+        <h4>🛡️ ATS Defense Strategy</h4>
+        <p>This optimizer analyzes your resume against job descriptions using advanced AI to:</p>
+        <ul class="improvements-list">
+          <li><strong>Keyword Optimization:</strong> Identifies and incorporates missing keywords</li>
+          <li><strong>Format Enhancement:</strong> Restructures for optimal ATS parsing</li>
+          <li><strong>Skill Alignment:</strong> Matches your experience with job requirements</li>
+          <li><strong>Section Optimization:</strong> Improves section headers and organization</li>
+          <li><strong>Quantification:</strong> Adds measurable achievements where appropriate</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>🎯 Target Job Information</h2>
+      <div class="form-group">
+        <label for="job-title">Job Title *</label>
+        <input type="text" id="job-title" placeholder="e.g., Senior Software Engineer">
+      </div>
+      
+      <div class="form-group">
+        <label for="job-company">Company</label>
+        <input type="text" id="job-company" placeholder="e.g., Google">
+      </div>
+      
+      <div class="form-group">
+        <label for="job-description">Job Description *</label>
+        <textarea id="job-description" placeholder="Paste the complete job description here..."></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="job-skills">Required Skills (comma-separated)</label>
+        <input type="text" id="job-skills" placeholder="e.g., React, Node.js, Python, AWS, Docker">
+      </div>
+      
+      <div class="form-group">
+        <label for="ats-level">ATS Aggressiveness Level</label>
+        <select id="ats-level">
+          <option value="moderate">Moderate (Standard ATS)</option>
+          <option value="aggressive" selected>Aggressive (Advanced ATS)</option>
+          <option value="maximum">Maximum (Military-Grade ATS)</option>
+        </select>
+      </div>
+    </div>
+    
+    <button class="btn" id="analyze-btn">🔍 Analyze & Optimize for ATS</button>
+    <button class="btn btn-success" id="download-btn" disabled>💾 Download Optimized Resume</button>
+    
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <div>🛡️ Running Advanced ATS Analysis...</div>
+      <div style="font-size: 14px; margin-top: 10px; color: #6b7280;">
+        Analyzing keywords, optimizing format, enhancing compatibility...
+      </div>
+    </div>
+    
+    <div class="ats-analysis" id="ats-analysis" style="display: none;">
+      <div class="ats-card">
+        <h3>🎯 Keyword Match</h3>
+        <div class="ats-score" id="keyword-score">0%</div>
+        <div id="keyword-details"></div>
+      </div>
+      
+      <div class="ats-card">
+        <h3>📄 Format Score</h3>
+        <div class="ats-score" id="format-score">0%</div>
+        <div id="format-details"></div>
+      </div>
+      
+      <div class="ats-card">
+        <h3>⚡ Overall ATS Compatibility</h3>
+        <div class="ats-score" id="overall-score">0%</div>
+        <div id="overall-details"></div>
+      </div>
+    </div>
+    
+    <div class="result" id="result">
+      <h3>✅ ATS-Optimized Resume</h3>
+      <div class="ats-tip">
+        <h4>🛡️ Key Improvements Made:</h4>
+        <ul class="improvements-list" id="improvements-list"></ul>
+      </div>
+      
+      <div class="diff-section">
+        <h4>📋 Optimized Content:</h4>
+        <div id="optimized-content" style="white-space: pre-wrap; font-family: monospace; background: white; padding: 15px; border-radius: 8px; margin-top: 10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../features/ats-resume-optimizer.js"></script>
+</body>
+</html>

@@ -14,34 +14,34 @@
     "http://*/*"
   ],
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "dist/background/background.js",
     "type": "module",
     "persistent": false
   },
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "dist/popup/popup.html",
     "default_icon": {
       "16": "icons/icon16.svg",
       "48": "icons/icon48.svg",
       "128": "icons/icon128.svg"
     }
   },
-  "options_page": "options.html",
+  "options_page": "dist/options/options.html",
   "content_scripts": [
     {
       "matches": [
         "http://*/*",
         "https://*/*"
       ],
-      "js": ["content.js"],
-      "css": ["content.css"],
+      "js": ["dist/content/content.js"],
+      "css": ["dist/content/content.css"],
       "run_at": "document_idle",
       "all_frames": false
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["icons/*", "assets/*"],
+      "resources": ["icons/*", "assets/*", "features/*", "dashboard.html", "dashboard.js", "welcome.html", "dist/*"],
       "matches": ["<all_urls>"],
       "extension_ids": []
     }

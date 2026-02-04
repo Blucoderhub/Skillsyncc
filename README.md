@@ -1,135 +1,62 @@
 # Job Application Copilot
 
-AI-powered browser extension that helps you optimize resumes, analyze job descriptions, and complete job applications smarter and faster.
-
-This repository includes both the browser extension and a companion web application optimized for deployment on Vercel.
+AI-powered job application assistant that optimizes resumes, analyzes job descriptions, and helps you apply smarter.
 
 ## Features
 
-### Browser Extension
-
-
-- 🎯 **Job Description Intelligence** - Analyze job postings and get skill match scores
-- 📝 **ATS Optimization** - Tailor your resume for each application
-- 🤖 **Smart Autofill** - Intelligent form filling with review step
-- 💬 **Application Copilot** - Generate optimized answers to common questions
-- 📊 **Application Tracking** - Track all your applications and outcomes
-- 🔗 **Referral Assistant** - Draft personalized outreach messages
-- 🔒 **Privacy-First** - Your data stays secure and private
+- 🚀 **Resume Optimizer**: AI-powered resume optimization for specific job descriptions
+- 🛡️ **ATS Defender**: Defensive AI that makes your resume ATS-friendly
+- 🤖 **Auto ATS Optimizer**: Automatically extracts job descriptions from web pages and optimizes your resume
+- 🔍 **Job Analyzer**: Analyze job requirements and match with your skills
+- ⚡ **Auto-Fill Forms**: Automatically fill application forms with your data
+- 📊 **Application Tracker**: Monitor all your job applications in one place
+- 🏠 **Dashboard**: Central hub for all features and progress tracking
 
 ## Installation
 
-### Development
+1. Open Chrome and navigate to `chrome://extensions`
+2. Enable "Developer mode" in the top-right corner
+3. Click "Load unpacked" and select this folder (the root folder containing manifest.json)
+4. The extension will be installed and ready to use
 
-1. Install dependencies:
-```bash
-npm install
-```
+## Troubleshooting
 
-2. Build the extension:
-```bash
-npm run build
-```
-
-3. Load the extension:
-   - Open Chrome/Edge: `chrome://extensions/`
-   - Enable "Developer mode"
-   - Click "Load unpacked"
-   - Select the `dist` folder
-
-### Production
-
-Build for production:
-```bash
-npm run build
-```
-
-## Project Structure
-
-### Extension Structure
-```text
-├── src/
-│   ├── popup/          # Extension popup UI
-│   ├── options/         # Options/settings page
-│   ├── content/         # Content scripts for job sites
-│   ├── background/      # Background service worker
-│   ├── shared/          # Shared utilities and types
-│   │   ├── storage/     # Storage management
-│   │   ├── ai/          # AI service integration
-│   │   ├── vault/       # Professional vault
-│   │   └── platforms/   # Platform-specific adapters
-│   └── types/           # TypeScript types
-├── manifest.json        # Extension manifest
-└── package.json         # Dependencies
-```
-
-### Web Application
-The `/web` directory contains a Next.js application optimized for deployment on Vercel:
-
-```
-├── web/
-│   ├── app/            # Next.js 15 App Router
-│   ├── public/         # Static assets
-│   ├── package.json    # Web app dependencies
-│   ├── vercel.json     # Vercel deployment configuration
-│   └── README.md       # Web app deployment guide
-```
-
-```
-├── src/
-│   ├── popup/          # Extension popup UI
-│   ├── options/         # Options/settings page
-│   ├── content/         # Content scripts for job sites
-│   ├── background/      # Background service worker
-│   ├── shared/          # Shared utilities and types
-│   │   ├── storage/     # Storage management
-│   │   ├── ai/          # AI service integration
-│   │   ├── vault/       # Professional vault
-│   │   └── platforms/   # Platform-specific adapters
-│   └── types/           # TypeScript types
-├── manifest.json        # Extension manifest
-└── package.json         # Dependencies
-```
+If the popup doesn't appear:
+- Make sure all files are in the correct locations
+- Verify that the extension is enabled in Chrome
+- Check that you loaded the root folder (containing manifest.json)
+- Restart Chrome if needed
 
 ## Usage
 
-1. **Setup**: Open the extension options to create your professional vault
-2. **Job Search**: Visit job pages on supported platforms
-3. **Optimize**: Click the extension icon to analyze and optimize
-4. **Apply**: Use smart autofill with review before submitting
+Click the extension icon to open the popup and access any feature. Each feature opens in a new tab with a beautiful dark glass theme.
 
-## Supported Platforms
+## Configuration
 
-- LinkedIn
-- Indeed
-- Greenhouse
-- Lever
-- Workday
-- Generic career portals
+Click the gear icon in the extension popup or visit the options page to configure:
+- API keys for OpenAI and Anthropic
+- AI model preferences
+- Auto-fill settings
 
-## Privacy & Security
+## Current Status
 
-- All data stored locally by default
-- Optional encrypted cloud sync
-- No data sold or shared
-- User approval required for all actions
+All features are fully functional with a beautiful dark glass theme. The extension has been built and is ready to use. The compiled files are located in the `dist` folder.
 
-## Deployment
+## Architecture
 
-### Browser Extension
+- **Frontend**: React with TypeScript
+- **Backend**: Chrome Extension Background Scripts
+- **AI Integration**: OpenAI and Anthropic Claude APIs
+- **Storage**: Chrome Storage API for local data persistence
+- **UI/UX**: Dark glass theme with frosted glass effects
 
-Package and distribute the extension through the Chrome Web Store or Microsoft Edge Add-ons marketplace.
+## Claude Integration
 
-### Web Application
+The extension uses Anthropic's Claude models with intelligent model selection:
+- **Haiku**: For quick tasks like autofill
+- **Sonnet**: For balanced performance (recommended)
+- **Opus**: For complex job matching and analysis
 
-The companion web application is optimized for deployment on Vercel:
+## ATS Optimization
 
-1. Navigate to the `/web` directory
-2. Connect your GitHub repository to Vercel for automatic deployments
-3. Or deploy manually using the Vercel CLI
-
-See `web/README.md` for detailed deployment instructions.
-
-## License
-
-MIT
+Advanced ATS-friendly resume optimization with file upload capability. The system acts as a defensive AI against Applicant Tracking Systems.

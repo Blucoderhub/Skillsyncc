@@ -4,7 +4,8 @@ import type {
   ProfessionalProfile,
   JobDescription,
   JobMatchAnalysis,
-  ResumeVersion
+  ResumeVersion,
+  ExtensionSettings
 } from '../../types';
 import { StorageManager } from '../storage/storage';
 
@@ -17,11 +18,44 @@ export interface AIResponse {
 export class AIService {
   private static apiKey: string | null = null;
   private static provider: 'openai' | 'anthropic' | 'local' = 'openai';
+  private static anthropicModel: string = 'claude-3-5-sonnet-20241022';
+  private static defaultSettings: ExtensionSettings = {
+    autoActivate: true,
+    showMatchScore: true,
+    requireApproval: true,
+    premium: false,
+    aiProvider: 'openai',
+    anthropicModel: 'claude-3-5-sonnet-20241022',
+    openaiModel: 'gpt-4',
+  };
+
+  // Model selection strategy based on task complexity
+  private static getModelForTask(taskType: 'quick' | 'balanced' | 'complex'): string {
+    if (this.provider !== 'anthropic') {
+      return this.anthropicModel; // Use current model for non-Anthropic providers
+    }
+
+    switch (taskType) {
+      case 'quick':
+        return 'claude-3-haiku-20240307'; // Fastest for simple tasks
+      case 'balanced':
+        return 'claude-3-5-sonnet-20241022'; // Best value
+      case 'complex':
+        return 'claude-3-opus-20240229'; // Most capable
+      default:
+        return this.anthropicModel;
+    }
+  }
 
   static async initialize(): Promise<void> {
     const settings = await StorageManager.getSettings();
     this.provider = settings.aiProvider;
     this.apiKey = settings.apiKey || null;
+
+    // Set Claude-specific model if using Anthropic
+    if (this.provider === 'anthropic' && settings.anthropicModel) {
+      this.anthropicModel = settings.anthropicModel;
+    }
   }
 
   // Resume Optimization
@@ -34,7 +68,7 @@ export class AIService {
       await this.initialize();
 
       const prompt = this.buildResumeOptimizationPrompt(resume, jobDescription, profile);
-      const analysis = await this.callAI(prompt);
+      const analysis = await this.callAI(prompt, 'complex'); // Use Opus for complex optimization
       const optimizedResume = analysis.optimizedResume || analysis;
 
       return {
@@ -61,7 +95,7 @@ export class AIService {
       await this.initialize();
 
       const prompt = this.buildJobAnalysisPrompt(jobDescription, profile);
-      const analysis = await this.callAI(prompt);
+      const analysis = await this.callAI(prompt, 'complex'); // Use Opus for complex job analysis
 
       const matchScore = this.calculateMatchScore(analysis, profile, jobDescription);
 
@@ -91,7 +125,7 @@ export class AIService {
       await this.initialize();
 
       const prompt = this.buildAnswerGenerationPrompt(question, context);
-      const answer = await this.callAI(prompt);
+      const answer = await this.callAI(prompt, 'balanced'); // Use Sonnet for balanced response
 
       return {
         success: true,
@@ -113,7 +147,7 @@ export class AIService {
     try {
       await this.initialize();
       const prompt = this.buildInterviewPrepPrompt(jobDescription, profile);
-      const data = await this.callAI(prompt);
+      const data = await this.callAI(prompt, 'complex'); // Use Opus for detailed interview prep
       return { success: true, data };
     } catch (error) {
       return {
@@ -131,7 +165,7 @@ export class AIService {
     try {
       await this.initialize();
       const prompt = this.buildStarMappingPrompt(jobDescription, profile);
-      const data = await this.callAI(prompt);
+      const data = await this.callAI(prompt, 'complex'); // Use Opus for detailed STAR mapping
       return { success: true, data };
     } catch (error) {
       return {
@@ -152,7 +186,7 @@ export class AIService {
       await this.initialize();
 
       const prompt = this.buildOutreachPrompt(recipientName, jobDescription, profile, type);
-      const message = await this.callAI(prompt);
+      const message = await this.callAI(prompt, 'balanced'); // Use Sonnet for outreach
 
       return {
         success: true,
@@ -190,7 +224,7 @@ Return a JSON object:
   "message": "...",
   "talkingPoints": ["technical point 1", "technical point 2"]
 }`;
-      const data = await this.callAI(prompt);
+      const data = await this.callAI(prompt, 'balanced'); // Use Sonnet for balanced outreach
       return { success: true, data };
     } catch (error) {
       return {
@@ -221,7 +255,7 @@ Guidelines:
 3. Align strictly with the job's technical requirements.
 
 Return JSON: { "bullets": ["...", "...", "..."], "summary": "A 1-sentence targeted summary" }`;
-      const data = await this.callAI(prompt);
+      const data = await this.callAI(prompt, 'balanced'); // Use Sonnet for balanced bullet generation
       return { success: true, data };
     } catch (error) {
       return { success: false, error: 'Failed to generate tailored bullets' };
@@ -248,7 +282,7 @@ Skills: ${profile.skills.join(', ')}
 Key Story: ${profile.starStories[0]?.situation || 'N/A'}
 
 Return JSON: { "suggestion": "..." }`;
-      const data = await this.callAI(prompt);
+      const data = await this.callAI(prompt, 'quick'); // Use Haiku for quick autofill
       return { success: true, data };
     } catch (error) {
       return { success: false, error: 'Failed to suggest field value' };
@@ -263,15 +297,106 @@ Return JSON: { "suggestion": "..." }`;
       Provide a brief reason why for each.
 
 Return JSON: { "targets": [{ "role": "...", "reason": "..." }] }`;
-      const data = await this.callAI(prompt);
+      const data = await this.callAI(prompt, 'balanced'); // Use Sonnet for balanced analysis
       return { success: true, data };
     } catch (error) {
       return { success: false, error: 'Failed to identify targets' };
     }
   }
 
+  // Technical Synergy: Deep Logical Alignment (Founders Edition)
+  static async analyzeTechnicalSynergy(
+    jobDescription: JobDescription,
+    profile: ProfessionalProfile
+  ): Promise<AIResponse> {
+    try {
+      await this.initialize();
+      const prompt = `You are an elite Technical Architect. Analyze the "Technical Synergy" between this candidate and the job.
+      Beyond keywords, find deep logical overlaps in:
+      1. Architectural Patterns (e.g., Microservices, Event-driven)
+      2. Problem-Solving Parallels
+      3. Technology Evolution (e.g., candidate transitioned from Java to Go, job requires high-perf systems)
+      
+      Job: ${jobDescription.title} at ${jobDescription.company}
+      Candidate Background: ${profile.personalInfo.summary}
+      Experience: ${JSON.stringify(profile.experiences.slice(0, 3))}
+      
+      Return JSON:
+      {
+        "synergyScore": 0-100,
+        "logicalOverlaps": ["overlap 1", "overlap 2"],
+        "pitchAngle": "The unique angle the candidate should take when reaching out",
+        "redFlags": ["Potential technical friction points"]
+      }`;
+      const data = await this.callAI(prompt, 'complex');
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: 'Synergy analysis failed' };
+    }
+  }
+
+  // Peer-Grade Endorsement: Senior Engineer Level Referral (Founders Edition)
+  static async generatePeerGradeEndorsement(
+    jobDescription: JobDescription,
+    profile: ProfessionalProfile
+  ): Promise<AIResponse> {
+    try {
+      await this.initialize();
+      const prompt = `You are a Senior Staff Engineer at a top-tier tech firm. Write a "Peer Endorsement" for this candidate for the ${jobDescription.title} role at ${jobDescription.company}.
+      
+      The tone should be:
+      - Highly technical and specific.
+      - Collaborative (like a peer recommending a peer).
+      - Focused on high-impact outcomes and "how" they solve problems.
+      
+      Candidate Info: ${profile.personalInfo.summary}
+      Core STAR Stories: ${JSON.stringify(profile.starStories.slice(0, 2))}
+      
+      Return JSON:
+      {
+        "endorsementText": "A 2-paragraph highly technical recommendation",
+        "peerSignals": ["Specific technical signals this candidate sends to other engineers"]
+      }`;
+      const data = await this.callAI(prompt, 'complex');
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: 'Peer endorsement generation failed' };
+    }
+  }
+
+  // ATS Guard: Shadow-Ban Protection (Founders Edition)
+  static async checkATSCompatibility(
+    resume: ResumeVersion,
+    jobDescription: JobDescription
+  ): Promise<AIResponse> {
+    try {
+      await this.initialize();
+      const prompt = `You are an ATS (Applicant Tracking System) Expert. Audit this resume for potential "Shadow-Ban" triggers in systems like Workday, Greenhouse, or Lever.
+      
+      Resume: ${resume.content}
+      Job context: ${jobDescription.title} at ${jobDescription.company}
+      
+      Check for:
+      1. Parsing Errors (Complex layouts, tables, headers)
+      2. Keyword "Stuffing" vs. Lack of context
+      3. Missing Standard Sections
+      4. Hard-Rejection triggers (e.g., specific missing certifications required)
+      
+      Return JSON:
+      {
+        "parsingRisk": "Low|Medium|High",
+        "rejectionTriggers": ["trigger 1", "trigger 2"],
+        "remediationSteps": ["step 1", "step 2"]
+      }`;
+      const data = await this.callAI(prompt, 'balanced');
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: 'ATS audit failed' };
+    }
+  }
+
   // Private helper methods
-  private static async callAI(prompt: string): Promise<any> {
+  private static async callAI(prompt: string, taskType: 'quick' | 'balanced' | 'complex' = 'balanced'): Promise<any> {
     if (this.provider === 'local') {
       return this.callLocalAI(prompt);
     }
@@ -285,7 +410,7 @@ Return JSON: { "targets": [{ "role": "...", "reason": "..." }] }`;
     }
 
     if (this.provider === 'anthropic') {
-      return this.callAnthropic(prompt);
+      return this.callAnthropic(prompt, taskType);
     }
 
     throw new Error('Unknown AI provider');
@@ -313,67 +438,161 @@ Return JSON: { "targets": [{ "role": "...", "reason": "..." }] }`;
     return this.parseJSONResponse(data.choices[0].message.content);
   }
 
-  private static async callAnthropic(prompt: string): Promise<any> {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': this.apiKey!,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-3-opus-20240229',
-        max_tokens: 4096,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
+  private static async callAnthropic(prompt: string, taskType: 'quick' | 'balanced' | 'complex' = 'balanced'): Promise<any> {
+    try {
+      const model = this.getModelForTask(taskType);
 
-    if (!response.ok) {
-      throw new Error(`Anthropic API error: ${response.statusText}`);
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey!,
+          'anthropic-version': '2023-06-01',
+          'anthropic-beta': 'messages-2023-12-15', // For better JSON handling
+        },
+        body: JSON.stringify({
+          model: model,
+          max_tokens: 4096,
+          temperature: 0.7,
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: `${prompt}\n\nPlease respond with valid JSON only. Do not include any markdown formatting, code blocks, or additional text. Return ONLY the JSON object as requested.`
+              }
+            ]
+          }
+          ],
+          system: 'You are a precise JSON generator. Always respond with valid JSON objects. Never include markdown formatting or additional text.'
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Anthropic API error (${response.status}): ${errorText}`);
+      }
+
+      const data = await response.json();
+
+      // Claude returns content as an array of content blocks
+      if (!data.content || !Array.isArray(data.content) || data.content.length === 0) {
+        throw new Error('Invalid response format from Claude API');
+      }
+
+      const contentText = data.content[0].text;
+      return this.parseJSONResponse(contentText);
+    } catch (error) {
+      console.error('Claude API call failed:', error);
+      throw error;
     }
-
-    const data = await response.json();
-    return this.parseJSONResponse(data.content[0].text);
   }
 
   private static parseJSONResponse(text: string): any {
-    try {
-      // Sanitize input by removing potential malicious code
-      const sanitized = text.replace(/<script[^>]*>.*?<\/script>/gi, '');
-      
-      // Try direct parse first
-      return JSON.parse(sanitized);
-    } catch (e) {
-      // Try to find JSON block in markdown
-      const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      if (jsonMatch && jsonMatch[1]) {
-        try {
-          // Validate that the extracted JSON is safe before parsing
-          const extractedJson = jsonMatch[1].trim();
-          if (extractedJson.startsWith('{') || extractedJson.startsWith('[')) {
-            return JSON.parse(extractedJson);
-          }
-        } catch (innerE) {
-          // Fall through
-        }
-      }
-
-      // Try to find anything that looks like a JSON object
-      const objectMatch = text.match(/\{[\s\S]*?\}/);
-      if (objectMatch) {
-        try {
-          // Validate that the extracted object is safe
-          const extractedObject = objectMatch[0].trim();
-          if (extractedObject.startsWith('{') && extractedObject.endsWith('}')) {
-            return JSON.parse(extractedObject);
-          }
-        } catch (innerE) {
-          // Fall through
-        }
-      }
-
-      throw new Error('Failed to parse AI response as JSON');
+    // Validate input length to prevent memory issues
+    if (text.length > 100000) {
+      throw new Error('AI response too long to parse safely');
     }
+
+    // Deep sanitize to remove any potential XSS threats
+    let sanitized = text.replace(/<script[^>]*>.*?<\/script>/gi, '')
+      .replace(/on\w+\s*=\s*["\'][^"\']*["\']/gi, '')
+      .replace(/javascript:/gi, '')
+      .trim();
+
+    try {
+      // First, try direct parsing for performance
+      if (this.isJSONStructure(sanitized)) {
+        const parsed = JSON.parse(sanitized);
+        // Validate it's safe structure
+        if (this.validateAIParsedJSON(parsed)) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      // Try other strategies
+
+      // Try to find JSON within markdown code blocks
+      const codeBlockMatch = sanitized.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+      if (codeBlockMatch?.[1] && codeBlockMatch[1].length <= 10000) {
+        try {
+          const extractedJson = codeBlockMatch[1].trim();
+          if (this.isJSONStructure(extractedJson)) {
+            const parsed = JSON.parse(extractedJson);
+            if (this.validateAIParsedJSON(parsed)) {
+              return parsed;
+            }
+          }
+        } catch (innerE) {
+          // Continue to next strategy
+        }
+      }
+
+      // Try to extract JSON object from text
+      const objectMatch = sanitized.match(/\{[\s\S]*\}/);
+      if (objectMatch?.[0] && objectMatch[0].length <= 10000) {
+        try {
+          const extractedObject = objectMatch[0].trim();
+          if (this.isJSONStructure(extractedObject)) {
+            const parsed = JSON.parse(extractedObject);
+            if (this.validateAIParsedJSON(parsed)) {
+              return parsed;
+            }
+          }
+        } catch (innerE) {
+          // Continue to next strategy
+        }
+      }
+
+      // Try to extract JSON array from text
+      const arrayMatch = sanitized.match(/\[[\s\S]*\]/);
+      if (arrayMatch?.[0] && arrayMatch[0].length <= 10000) {
+        try {
+          const extractedArray = arrayMatch[0].trim();
+          if (this.isJSONStructure(extractedArray)) {
+            const parsed = JSON.parse(extractedArray);
+            if (this.validateAIParsedJSON(parsed)) {
+              return parsed;
+            }
+          }
+        } catch (innerE) {
+          // All strategies failed
+        }
+      }
+
+      throw new Error('Failed to parse AI response as valid JSON');
+    }
+  }
+
+  // Helper method to validate JSON structure
+  private static isJSONStructure(str: string): boolean {
+    const trimmed = str.trim();
+    return (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+      (trimmed.startsWith('[') && trimmed.endsWith(']'));
+  }
+
+  // Validate that parsed JSON is safe and has expected structure
+  private static validateAIParsedJSON(obj: any): boolean {
+    if (typeof obj !== 'object' || obj === null) {
+      return false;
+    }
+
+    // Check for dangerous properties
+    const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
+    for (const key of dangerousKeys) {
+      if (key in obj) {
+        return false;
+      }
+    }
+
+    // Check for function values
+    for (const value of Object.values(obj)) {
+      if (typeof value === 'function') {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   private static async callLocalAI(_prompt: string): Promise<any> {
@@ -413,7 +632,7 @@ Task: Optimize the resume to match the job description while maintaining authent
 3. Improving ATS compatibility
 4. Maintaining professional tone
 
-Return ONLY a JSON object with:
+Return ONLY a JSON object with this exact structure:
 {
   "optimizedResume": "the optimized resume text",
   "changes": "brief explanation of key changes made"
@@ -442,7 +661,7 @@ TASK:
 3. Identify CRITICAL GAPS that will trigger rejection.
 4. Calculate a "Semantic Match Score" (0-100) based strictly on domain depth, not keyword counts.
 
-Return ONLY JSON:
+Return ONLY JSON with this exact structure:
 {
   "matchedSkills": [{ "skill": "...", "type": "Exact|Transferable", "confidence": 0.0-1.0 }],
   "missingSkills": ["..."],

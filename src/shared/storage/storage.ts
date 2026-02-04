@@ -96,17 +96,26 @@ export class StorageManager {
 
   private static sanitizeString(str: string | undefined): string | undefined {
     if (!str) return str;
-    
-    // Remove potentially dangerous characters and patterns
+      
+    // Comprehensive XSS sanitization
     return str
       .replace(/<script[^>]*>.*?<\/script>/gi, '') // Remove script tags
       .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '') // Remove iframe tags
       .replace(/<object[^>]*>.*?<\/object>/gi, '') // Remove object tags
       .replace(/<embed[^>]*>.*?<\/embed>/gi, '') // Remove embed tags
-      .replace(/<img[^>]*on\w+\s*=\s*["'][^"']*["'][^>]*>/gi, '') // Remove img tags with event handlers
+      .replace(/<applet[^>]*>.*?<\/applet>/gi, '') // Remove applet tags
+      .replace(/<meta[^>]*>.*?<\/meta>/gi, '') // Remove meta tags
+      .replace(/<link[^>]*>.*?<\/link>/gi, '') // Remove link tags
+      .replace(/<base[^>]*>.*?<\/base>/gi, '') // Remove base tags
+      .replace(/<img[^>]*on\w+\s*=\s*["\'][^"\']*["\'][^>]*>/gi, '') // Remove img tags with event handlers
+      .replace(/<[^>]*on\w+\s*=\s*["\'][^"\']*["\'][^>]*>/gi, '') // Remove any tag with event handlers
       .replace(/javascript:/gi, '') // Remove javascript: protocol
       .replace(/vbscript:/gi, '') // Remove vbscript: protocol
-      .replace(/on\w+\s*=\s*["'][^"']*["']/gi, ''); // Remove event handlers
+      .replace(/data:/gi, '') // Remove data: protocol
+      .replace(/on\w+\s*=\s*["\'][^"\']*["\']/gi, '') // Remove event handlers
+      .replace(/\s+on\w+\s*=\s*[^\s>]+/gi, '') // Remove event attributes
+      .replace(/\s+xmlns\s*=\s*[^\s>]+/gi, '') // Remove xmlns attributes
+      .trim();
   }
 
   private static sanitizeUrl(url: string | undefined): string | undefined {
@@ -184,6 +193,8 @@ export class StorageManager {
       requireApproval: true,
       premium: false,
       aiProvider: 'openai',
+      anthropicModel: 'claude-3-5-sonnet-20241022',
+      openaiModel: 'gpt-4',
     };
   }
 

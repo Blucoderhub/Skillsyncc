@@ -105,6 +105,7 @@ export type JobPlatform =
 export interface JobMatchAnalysis {
   jobId: string;
   matchScore: number;
+  semanticMatchScore?: number;
   matchedSkills: string[];
   missingSkills: string[];
   recommendations: string[];
@@ -177,4 +178,6 @@ export interface ExtensionSettings {
   premium: boolean;
   aiProvider: 'openai' | 'anthropic' | 'local';
   apiKey?: string;
+  anthropicModel?: string;
+  openaiModel?: string;
 }

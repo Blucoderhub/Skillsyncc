@@ -1,12 +1,173 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Job Application Copilot</title>
+  <meta charset="utf-8">
+  <style>
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --bg-card: rgba(30, 30, 30, 0.7);
+      --glass-bg: rgba(30, 30, 30, 0.3);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0b0;
+      --accent-blue: #007aff;
+      --accent-purple: #af52de;
+      --accent-green: #34c759;
+      --accent-yellow: #ffcc00;
+      --border-radius: 16px;
+      --glass-blur: 15px;
+      --shadow-glass: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 380px;
+      min-height: 500px;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      backdrop-filter: blur(10px);
+      overflow-x: hidden;
+    }
+    
+    .header {
+      background: var(--glass-bg);
+      border-bottom: 1px solid var(--glass-border);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      backdrop-filter: blur(var(--glass-blur));
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
+    
+    .header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .header p {
+      margin: 4px 0 0 0;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    
+    .container {
+      padding: 16px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .feature {
+      background: var(--glass-bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+    }
+    
+    .feature:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      border-color: rgba(0, 122, 255, 0.3);
+    }
+    
+    .feature h3 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .feature p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+    
+    .status {
+      text-align: center;
+      padding: 16px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: var(--bg-card);
+      border-radius: 8px;
+      margin-top: 16px;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+    }
+    
+    .status.active {
+      color: var(--accent-green);
+      font-weight: 500;
+    }
+  </style>
 </head>
 <body>
-  <div id="popup-root"></div>
-  <script type="module" src="./src/popup/index.tsx"></script>
+  <div class="header">
+    <h1>Job Copilot</h1>
+    <p>AI-Powered Job Application Assistant</p>
+  </div>
+  
+  <div class="container">
+    <div class="feature" id="resumeOptimize">
+      <h3>📄 Resume Optimizer</h3>
+      <p>Optimize your resume for specific job descriptions</p>
+    </div>
+    
+    <div class="feature" id="atsOptimizer">
+      <h3>🛡️ ATS Defender</h3>
+      <p>Advanced ATS-proof resume optimization with file upload</p>
+    </div>
+    
+    <div class="feature" id="autoAtsOptimizer">
+      <h3>🤖 Auto ATS Optimizer</h3>
+      <p>Automatically extract JD from web pages and optimize resumes</p>
+    </div>
+    
+    <div class="feature" id="jobAnalyze">
+      <h3>🔍 Job Analyzer</h3>
+      <p>Analyze job requirements and match with your skills</p>
+    </div>
+    
+    <div class="feature" id="autoFill">
+      <h3>⚡ Auto-Fill Forms</h3>
+      <p>Automatically fill application forms with your data</p>
+    </div>
+    
+    <div class="feature" id="trackApps">
+      <h3>📊 Track Applications</h3>
+      <p>Monitor your job application progress</p>
+    </div>
+    
+    <div class="feature" id="dashboard">
+      <h3>🏠 Dashboard</h3>
+      <p>View all features and your progress overview</p>
+    </div>
+    
+    <div class="status active">
+      Extension is active and ready to help!
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
 </body>
 </html>

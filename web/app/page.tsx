@@ -1,176 +1,155 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Sparkles, Brain, Zap, ShieldCheck, Download, UserPlus, ArrowRight, Search, Target, Users, TrendingUp } from 'lucide-react';
+import { Sparkles, Brain, Zap, ShieldCheck, Download, ArrowRight, Target, TrendingUp, Cpu, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { NeuralCoach } from '../components/NeuralCoach';
 
 export default function LandingPage() {
-    const [activeTab, setActiveTab] = useState('ext');
-
-    const container = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-        }
-    };
-
-    const item = {
-        hidden: { y: 20, opacity: 0 },
-        show: { y: 0, opacity: 1 }
-    };
+    const [isCoachOpen, setIsCoachOpen] = useState(false);
 
     return (
-        <main className="min-h-screen relative overflow-hidden">
+        <main className="min-h-screen relative overflow-hidden bg-[#0A0A0B] text-[#F5F5F7] neural-grid">
+            <NeuralCoach isOpen={isCoachOpen} onClose={() => setIsCoachOpen(false)} />
+
             {/* Navigation */}
-            <nav className="relative z-10 flex justify-between items-center px-6 md:px-12 py-6 max-w-7xl mx-auto">
+            <nav className="relative z-50 flex justify-between items-center px-6 md:px-12 py-8 max-w-7xl mx-auto">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center font-bold text-white text-xl">
+                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center font-bold text-black text-xl shadow-[0_0_20px_rgba(255,255,255,0.3)]">
                         S
                     </div>
-                    <span className="text-2xl font-bold tracking-tight">Skillsyncc</span>
+                    <span className="text-2xl font-bold tracking-tighter founders-gradient">Skillsyncc</span>
                 </div>
-                <div className="hidden md:flex gap-8 items-center font-medium text-gray-700">
-                    <a href="#features" className="hover:text-emerald-600 transition-colors">Features</a>
-                    <a href="#how-it-works" className="hover:text-emerald-600 transition-colors">How it Works</a>
-                    <a href="#pricing" className="hover:text-emerald-600 transition-colors">Pricing</a>
-                    <button className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:shadow-lg transition-all font-medium">
-                        Login
-                    </button>
-                </div>
-                <div className="md:hidden">
-                    <button className="p-2 rounded-lg hover:bg-gray-100">
-                        <span className="text-gray-700">☰</span>
+                <div className="hidden md:flex gap-10 items-center font-medium text-[#A1A1AA]">
+                    <a href="#features" className="hover:text-white transition-colors">Intelligence</a>
+                    <a href="#vault" className="hover:text-white transition-colors">The Vault</a>
+                    <a href="#pricing" className="hover:text-white transition-colors">Elite</a>
+                    <button className="premium-button text-sm">
+                        Enterprise Access
                     </button>
                 </div>
             </nav>
 
             {/* Hero Section */}
-            <section className="relative z-10 pt-16 pb-20 px-6 max-w-7xl mx-auto text-center">
+            <section className="relative z-10 pt-24 pb-32 px-6 max-w-7xl mx-auto text-center">
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
+                    transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
                 >
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium mb-6">
-                        <Sparkles className="w-4 h-4" />
-                        <span>Hire pro-actively</span>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-medium mb-8 backdrop-blur-md">
+                        <Sparkles className="w-3.5 h-3.5 text-[#FFD700]" />
+                        <span className="tracking-widest uppercase opacity-80">Founders Edition v3.0</span>
                     </div>
-                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600">
-                            Automate Your Job Search
-                        </span>
-                        <br />Stop Manual Application Filling
+                    <h1 className="text-5xl md:text-8xl font-bold mb-8 leading-[1.1] tracking-tighter">
+                        <span className="accent-text">The World's Most</span>
+                        <br />
+                        <span className="founders-gradient">Advanced AI Career Copilot.</span>
                     </h1>
-                    <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-600 font-light mb-10 max-w-3xl">
-                        Let AI fill out applications, optimize your resume, and find the best matches. Join thousands who've landed their dream jobs faster.
+                    <p className="max-w-2xl mx-auto text-lg md:text-xl text-[#A1A1AA] font-light mb-12 leading-relaxed">
+                        Skillsyncc orchestrates your professional identity using Neural Synergy™ logic.
+                        No more forms. No more generic resumes. Just elite career acceleration.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto">
-                        <button className="w-full sm:w-auto weekday-button flex items-center justify-center gap-2 px-8 py-4 text-base">
-                            Get Started Free <ArrowRight className="w-4 h-4" />
+                    <div className="flex flex-col sm:flex-row gap-6 justify-center items-center max-w-xl mx-auto">
+                        <button
+                            onClick={() => setIsCoachOpen(true)}
+                            className="w-full sm:w-auto premium-button flex items-center justify-center gap-2 group"
+                        >
+                            Initialize Growth <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                         </button>
-                        <button className="w-full sm:w-auto px-8 py-4 glass-container font-medium flex items-center justify-center gap-2 hover:bg-white/20 transition-all">
+                        <button className="w-full sm:w-auto secondary-button flex items-center justify-center gap-2">
                             <Download className="w-4 h-4" /> Install Extension
                         </button>
                     </div>
                 </motion.div>
             </section>
 
-            {/* Stats Section */}
-            <section className="relative z-10 py-12 px-6 max-w-7xl mx-auto mb-20">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            {/* Stats Section with Glass Cards */}
+            <section className="relative z-10 py-20 px-6 max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {[
-                        { value: "300mn+", label: "Talent Database" },
-                        { value: "30-40%", label: "Response Rate" },
-                        { value: "50%+", label: "Best Fits" },
-                        { value: "24/7", label: "Follow-ups" }
+                        { icon: <Brain className="w-5 h-5" />, value: "98.2%", label: "Semantic Precision" },
+                        { icon: <TrendingUp className="w-5 h-5" />, value: "4.2x", label: "Interview Multiplier" },
+                        { icon: <Globe className="w-5 h-5" />, value: "50+", label: "Platforms Supported" },
+                        { icon: <ShieldCheck className="w-5 h-5" />, value: "AES-256", label: "Vault Security" }
                     ].map((stat, i) => (
-                        <motion.div 
+                        <motion.div
                             key={i}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            viewport={{ once: true }}
                             transition={{ delay: 0.1 * i }}
-                            className="text-center p-6 glass-container text-center"
+                            className="glass-card p-8 flex flex-col items-center text-center group hover:border-white/20 transition-colors"
                         >
-                            <div className="text-2xl md:text-3xl font-bold text-emerald-600 mb-2">{stat.value}</div>
-                            <div className="text-sm text-gray-600">{stat.label}</div>
+                            <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 group-hover:bg-white/10 transition-colors">
+                                {stat.icon}
+                            </div>
+                            <div className="text-3xl font-bold mb-1 tracking-tight">{stat.value}</div>
+                            <div className="text-xs uppercase tracking-widest text-[#A1A1AA] font-semibold">{stat.label}</div>
                         </motion.div>
                     ))}
                 </div>
             </section>
 
-            {/* Features Section */}
-            <section id="features" className="relative z-10 py-16 px-6 max-w-7xl mx-auto">
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-bold mb-4">How Skillsyncc Transforms Your Job Search</h2>
-                    <p className="text-gray-600 max-w-2xl mx-auto">Our AI-powered platform automates everything from application filling to follow-ups</p>
+            {/* Intelligence Section */}
+            <section id="features" className="relative z-10 py-32 px-6 max-w-7xl mx-auto">
+                <div className="text-center mb-24">
+                    <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Engineered for Excellence.</h2>
+                    <p className="text-[#A1A1AA] max-w-2xl mx-auto text-lg leading-relaxed">
+                        We didn't just build a scraper. We built a neural engine that understands the nuances of technical architecture and career trajectory.
+                    </p>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                     {[
                         {
-                            icon: <Target className="w-8 h-8 text-emerald-600" />,
-                            title: "Smart Matching",
-                            desc: "AI analyzes job descriptions and matches with your skills and experience."
+                            icon: <Target className="w-8 h-8 text-[#FFD700]" />,
+                            title: "Neural Synergy™",
+                            desc: "Deep logical alignment that finds architectural overlaps between your history and the job requirements."
                         },
                         {
-                            icon: <Zap className="w-8 h-8 text-emerald-600" />,
-                            title: "Auto-Fill Forms",
-                            desc: "One-click application filling with your pre-filled information."
+                            icon: <Cpu className="w-8 h-8 text-[#FFD700]" />,
+                            title: "Obsidian Vault",
+                            desc: "Encrypt and manage your STAR stories and technical achievements in a world-class interface."
                         },
                         {
-                            icon: <Search className="w-8 h-8 text-emerald-600" />,
-                            title: "Resume Optimization",
-                            desc: "Real-time resume optimization based on job requirements."
-                    }
+                            icon: <Zap className="w-8 h-8 text-[#FFD700]" />,
+                            title: "Edge Orchestration",
+                            desc: "The floating dock lives where you work, injecting intelligence directly into Workday, Greenhouse, and more."
+                        }
                     ].map((feature, i) => (
                         <motion.div
                             key={i}
                             initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 * i }}
-                            className="glass-container p-8 text-center group"
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            className="p-4"
                         >
-                            <div className="mb-6 flex justify-center">{feature.icon}</div>
-                            <h3 className="text-xl font-bold mb-3 text-gray-800">{feature.title}</h3>
-                            <p className="text-gray-600">{feature.desc}</p>
+                            <div className="mb-8">{feature.icon}</div>
+                            <h3 className="text-2xl font-bold mb-4 tracking-tight">{feature.title}</h3>
+                            <p className="text-[#A1A1AA] leading-relaxed">{feature.desc}</p>
                         </motion.div>
                     ))}
                 </div>
             </section>
 
-            {/* CTA Section */}
-            <section className="relative z-10 py-24 px-6 max-w-5xl mx-auto text-center my-20">
-                <div className="glass-container p-12 md:p-16 rounded-3xl">
-                    <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Transform Your Job Search?</h2>
-                    <p className="text-gray-600 mb-8 max-w-2xl mx-auto">Join thousands of professionals who've landed their dream jobs faster with our AI-powered platform.</p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <button className="weekday-button px-8 py-4 text-lg">
-                            Start Free Trial
-                        </button>
-                        <button className="px-8 py-4 bg-white border border-gray-200 text-gray-800 rounded-xl font-medium hover:shadow-sm transition-all">
-                            Book a Demo
-                        </button>
+            {/* Footer */}
+            <footer className="relative z-10 py-20 border-t border-white/5 px-6 md:px-12 max-w-7xl mx-auto">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-12">
+                    <div className="text-left">
+                        <div className="text-2xl font-bold mb-4 founders-gradient tracking-tighter">Skillsyncc</div>
+                        <div className="text-[#71717A] text-sm">Design inspired by excellence. Built for the elite.</div>
+                    </div>
+                    <div className="flex flex-wrap gap-10 text-sm font-medium text-[#71717A]">
+                        <a href="#" className="hover:text-white transition-colors uppercase tracking-widest">Protocol</a>
+                        <a href="#" className="hover:text-white transition-colors uppercase tracking-widest">Privacy</a>
+                        <a href="#" className="hover:text-white transition-colors uppercase tracking-widest">Security</a>
+                        <a href="#" className="hover:text-white transition-colors uppercase tracking-widest">Contact</a>
                     </div>
                 </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="relative z-10 py-12 border-t border-gray-200 px-6 md:px-12 max-w-7xl mx-auto">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-                        <div className="text-left">
-                            <div className="text-xl font-bold mb-2">Skillsyncc</div>
-                            <div className="text-gray-600 text-sm">© 2026 Skillsyncc. All rights reserved.</div>
-                        </div>
-                        <div className="flex flex-wrap gap-6 text-sm text-gray-600">
-                            <a href="#" className="hover:text-emerald-600 transition-colors">Terms</a>
-                            <a href="#" className="hover:text-emerald-600 transition-colors">Privacy</a>
-                            <a href="#" className="hover:text-emerald-600 transition-colors">Security</a>
-                            <a href="#" className="hover:text-emerald-600 transition-colors">Contact</a>
-                        </div>
-                    </div>
+                <div className="mt-20 text-[#3F3F46] text-xs text-center border-t border-white/5 pt-10">
+                    © 2026 SKILLSYNCC PLATFORM. ALL RIGHTS RESERVED. FOUNDERS EDITION.
                 </div>
             </footer>
         </main>

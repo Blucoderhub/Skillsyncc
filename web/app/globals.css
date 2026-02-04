@@ -3,8 +3,11 @@
 @tailwind utilities;
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #f5f5dc;
+  --background: #0A0A0B;
+  --foreground: #F5F5F7;
+  --card: #161618;
+  --accent: #FFD700; /* Founders Gold */
+  --border: rgba(255, 255, 255, 0.08);
 }
 
 body {
@@ -12,36 +15,33 @@ body {
   background: var(--background);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 @layer components {
   .glass-card {
-    @apply bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    @apply bg-[#161618]/60 backdrop-blur-2xl border border-white/10 rounded-[2rem];
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   }
 
   .premium-button {
-    @apply px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold uppercase tracking-wide rounded-xl 
-    transition-all duration-300 hover:scale-105 hover:shadow-lg hover:from-indigo-700 hover:to-purple-700 active:scale-95;
+    @apply px-8 py-4 bg-white text-black font-semibold rounded-2xl 
+    transition-all duration-300 hover:bg-[#F5F5F7] hover:scale-[1.02] active:scale-[0.98];
   }
 
-  .weekday-button {
-    @apply px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-lg
-    transition-all duration-300 hover:shadow-lg hover:from-emerald-600 hover:to-teal-600;
+  .secondary-button {
+    @apply px-8 py-4 bg-transparent border border-white/10 text-white font-semibold rounded-2xl 
+    transition-all duration-300 hover:bg-white/5 active:scale-[0.98];
   }
 
-  .premium-text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-teal-500;
+  .accent-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-b from-white to-[#A1A1AA];
+  }
+
+  .founders-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#FFD700] via-[#FDB931] to-[#FFD700];
     background-size: 200% auto;
-    animation: shine 3s linear infinite;
-  }
-
-  .weekday-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-teal-500;
-  }
-
-  .glass-container {
-    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6;
+    animation: shine 5s linear infinite;
   }
 }
 
@@ -49,18 +49,13 @@ body {
   to { background-position: 200% center; }
 }
 
-/* Retro CRT Effect for a subtle touch */
-.crt-overlay::before {
-  content: " ";
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  z-index: 2;
-  background-size: 100% 2px, 3px 100%;
-  pointer-events: none;
-  opacity: 0.15;
+/* Subtle Claude-like fluid scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Neural Background Effect (Subtle) */
+.neural-grid {
+  background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+  background-size: 40px 40px;
 }

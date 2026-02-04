@@ -1,14 +1,31 @@
-/* Content script styles */
+/* Job Application Copilot - Content Styles */
 
-#job-copilot-root {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+#job-copilot-overlay {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: all 0.3s ease;
 }
 
-#job-copilot-root * {
-  box-sizing: border-box;
+#job-copilot-overlay:hover {
+  transform: scale(1.05);
 }
 
-/* Ensure overlay is above page content */
-#job-copilot-root {
-  z-index: 2147483647 !important;
+.job-copilot-button {
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.job-copilot-button:hover {
+  background: #4f46e5;
+}
+
+.job-copilot-highlight {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+  background-color: rgba(99, 102, 241, 0.1);
 }
