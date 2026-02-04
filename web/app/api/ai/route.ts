@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, trackAnalytics, getUserSettings } from '@/lib/db';
 import { getToken } from '@/lib/auth';
 
 // AI Service Integration
@@ -10,25 +10,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const userId = token.userId;
     const body = await request.json();
     const { action, data } = body;
 
     switch (action) {
       case 'optimize_resume':
-        return await optimizeResume(data, token.userId);
-      
+        return await optimizeResume(data, userId);
+
       case 'analyze_job':
-        return await analyzeJob(data, token.userId);
-      
+        return await analyzeJob(data, userId);
+
       case 'generate_cover_letter':
-        return await generateCoverLetter(data, token.userId);
-      
+        return await generateCoverLetter(data, userId);
+
       case 'generate_interview_questions':
-        return await generateInterviewQuestions(data, token.userId);
-      
+        return await generateInterviewQuestions(data, userId);
+
       case 'optimize_profile':
-        return await optimizeProfile(data, token.userId);
-      
+        return await optimizeProfile(data, userId);
+
       default:
         return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
     }
@@ -51,16 +52,16 @@ async function optimizeResume(data: any, userId: string) {
   
   Provide optimization suggestions and improved content.`;
 
-  const aiResponse = await callAI(prompt);
-  
+  const aiResponse = await callAI(prompt, userId);
+
   // Track usage
   await trackAnalytics('ai_resume_optimization', {
     jobTitle: data.jobTitle,
     company: data.company,
   }, userId);
 
-  return NextResponse.json({ 
-    success: true, 
+  return NextResponse.json({
+    success: true,
     optimizedResume: aiResponse.content,
     suggestions: aiResponse.suggestions || []
   });
@@ -76,8 +77,8 @@ async function analyzeJob(data: any, userId: string) {
   Job: ${data.title} at ${data.company}
   Description: ${data.description}`;
 
-  const aiResponse = await callAI(prompt);
-  
+  const aiResponse = await callAI(prompt, userId);
+
   await trackAnalytics('ai_job_analysis', {
     jobTitle: data.title,
     company: data.company,
@@ -98,8 +99,8 @@ async function generateCoverLetter(data: any, userId: string) {
   
   Create a compelling, personalized cover letter.`;
 
-  const aiResponse = await callAI(prompt);
-  
+  const aiResponse = await callAI(prompt, userId);
+
   await trackAnalytics('ai_cover_letter_generated', {
     jobTitle: data.jobTitle,
     company: data.company,
@@ -120,8 +121,8 @@ async function generateInterviewQuestions(data: any, userId: string) {
   
   Provide 10-15 questions with tips for answering each.`;
 
-  const aiResponse = await callAI(prompt);
-  
+  const aiResponse = await callAI(prompt, userId);
+
   await trackAnalytics('ai_interview_questions', {
     jobTitle: data.jobTitle,
     company: data.company,
@@ -143,8 +144,8 @@ async function optimizeProfile(data: any, userId: string) {
   
   Provide suggestions for improvement.`;
 
-  const aiResponse = await callAI(prompt);
-  
+  const aiResponse = await callAI(prompt, userId);
+
   await trackAnalytics('ai_profile_optimization', {}, userId);
 
   return NextResponse.json({
@@ -153,13 +154,13 @@ async function optimizeProfile(data: any, userId: string) {
   });
 }
 
-async function callAI(prompt: string) {
+async function callAI(prompt: string, userId: string) {
   // Get user's AI settings
   const settings = await getUserSettings(userId);
-  
-  if (settings.aiProvider === 'openai' && settings.apiKey) {
+
+  if (settings && settings.aiProvider === 'openai' && settings.apiKey) {
     return await callOpenAI(prompt, settings.apiKey);
-  } else if (settings.aiProvider === 'anthropic' && settings.apiKey) {
+  } else if (settings && settings.aiProvider === 'anthropic' && settings.apiKey) {
     return await callAnthropic(prompt, settings.apiKey);
   } else {
     throw new Error('AI provider not configured');

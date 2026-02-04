@@ -3,13 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { motion } from 'framer-motion';
-import { 
-  User, 
-  Briefcase, 
-  FileText, 
-  Star, 
-  Plus, 
-  Save, 
+import {
+  User,
+  Briefcase,
+  FileText,
+  Star,
+  Plus,
+  Save,
   Trash2,
   TrendingUp,
   Calendar,
@@ -34,11 +34,11 @@ export default function CompleteDashboard() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [experiences, setExperiences] = useState([]);
-  const [skills, setSkills] = useState([]);
-  const [applications, setApplications] = useState([]);
-  const [resumes, setResumes] = useState([]);
-  const [starStories, setStarStories] = useState([]);
+  const [experiences, setExperiences] = useState<any[]>([]);
+  const [skills, setSkills] = useState<any[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [resumes, setResumes] = useState<any[]>([]);
+  const [starStories, setStarStories] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -77,13 +77,13 @@ export default function CompleteDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profile),
       });
-      
+
       if (response.ok) {
         // Broadcast for extension sync
         const channel = new BroadcastChannel('skillsyncc_sync');
         channel.postMessage({ type: 'PROFILE_UPDATED', profile });
         channel.close();
-        
+
         alert('✅ Profile synchronized successfully!');
       }
     } catch (error) {
@@ -126,7 +126,7 @@ export default function CompleteDashboard() {
               </div>
               <span className="text-xl font-bold">Skillsyncc</span>
             </div>
-            
+
             <div className="flex items-center gap-6">
               <button className="text-gray-600 hover:text-emerald-600 transition-colors">
                 <Settings className="w-5 h-5" />
@@ -183,11 +183,10 @@ export default function CompleteDashboard() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-3 font-medium transition-all border-b-2 ${
-                    activeTab === tab.id
-                      ? 'text-emerald-600 border-emerald-500 bg-emerald-50'
-                      : 'text-gray-600 border-transparent hover:text-emerald-600'
-                  }`}
+                  className={`px-6 py-3 font-medium transition-all border-b-2 ${activeTab === tab.id
+                    ? 'text-emerald-600 border-emerald-500 bg-emerald-50'
+                    : 'text-gray-600 border-transparent hover:text-emerald-600'
+                    }`}
                 >
                   <tab.icon className="w-4 h-4 inline mr-2" />
                   {tab.label}
@@ -200,9 +199,9 @@ export default function CompleteDashboard() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
             {activeTab === 'overview' && <OverviewTab stats={stats} />}
             {activeTab === 'profile' && (
-              <ProfileTab 
-                profile={profile} 
-                setProfile={setProfile} 
+              <ProfileTab
+                profile={profile}
+                setProfile={setProfile}
                 saving={saving}
                 onSave={saveProfile}
               />
@@ -220,14 +219,14 @@ export default function CompleteDashboard() {
 }
 
 // Tab Components
-function OverviewTab({ stats }: { stats: any }) {
+function OverviewTab({ stats }: { stats: Record<string, string | number> }) {
   return (
     <div className="text-center py-12">
       <h2 className="text-2xl font-bold mb-6">Welcome to Your Career Dashboard</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {Object.entries(stats).map(([key, value]) => (
           <div key={key} className="p-6 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
-            <div className="text-3xl font-bold text-emerald-600">{value}</div>
+            <div className="text-3xl font-bold text-emerald-600">{String(value)}</div>
             <div className="text-sm text-emerald-700 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</div>
           </div>
         ))}
@@ -249,38 +248,38 @@ function ProfileTab({ profile, setProfile, saving, onSave }: any) {
           {saving ? 'Saving...' : <><Save className="w-4 h-4" /> Save Profile</>}
         </button>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <input
           placeholder="First Name"
           value={profile?.firstName || ''}
-          onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+          onChange={(e) => setProfile(prev => prev ? { ...prev, firstName: e.target.value } : null)}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
         />
         <input
           placeholder="Last Name"
           value={profile?.lastName || ''}
-          onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+          onChange={(e) => setProfile(prev => prev ? { ...prev, lastName: e.target.value } : null)}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
         />
         <input
           placeholder="Email"
           value={profile?.email || ''}
-          onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+          onChange={(e) => setProfile(prev => prev ? { ...prev, email: e.target.value } : null)}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
         />
         <input
           placeholder="Phone"
           value={profile?.phone || ''}
-          onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+          onChange={(e) => setProfile(prev => prev ? { ...prev, phone: e.target.value } : null)}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
         />
       </div>
-      
+
       <textarea
         placeholder="Professional Summary"
         value={profile?.summary || ''}
-        onChange={(e) => setProfile({ ...profile, summary: e.target.value })}
+        onChange={(e) => setProfile(prev => prev ? { ...prev, summary: e.target.value } : null)}
         rows={4}
         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
       />
@@ -366,12 +365,11 @@ function ApplicationsTab({ applications }: any) {
               <h4 className="font-bold">{app.jobTitle}</h4>
               <p className="text-gray-600">{app.company}</p>
             </div>
-            <span className={`px-3 py-1 rounded-full text-sm ${
-              app.status === 'interview' ? 'bg-green-100 text-green-700' :
+            <span className={`px-3 py-1 rounded-full text-sm ${app.status === 'interview' ? 'bg-green-100 text-green-700' :
               app.status === 'offer' ? 'bg-purple-100 text-purple-700' :
-              app.status === 'rejected' ? 'bg-red-100 text-red-700' :
-              'bg-blue-100 text-blue-700'
-            }`}>
+                app.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                  'bg-blue-100 text-blue-700'
+              }`}>
               {app.status}
             </span>
           </div>

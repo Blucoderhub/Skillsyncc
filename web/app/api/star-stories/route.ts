@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, getStarStoriesByProfileId, createStarStory, updateStarStory, deleteStarStory } from '@/lib/db';
+import { db, getStarStoriesByProfileId, createStarStory, updateStarStory, deleteStarStory, getProfileByUserId, trackAnalytics } from '@/lib/db';
 import { getToken } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     const starStory = await createStarStory(profile.id, validatedData);
-    
+
     // Track analytics
     await trackAnalytics('star_story_created', {
       tags: validatedData.tags,
@@ -76,7 +76,7 @@ export async function PUT(request: NextRequest) {
     const { id, ...updates } = body;
 
     const starStory = await updateStarStory(id, updates);
-    
+
     // Track analytics
     await trackAnalytics('star_story_updated', updates, token.userId);
 
@@ -102,7 +102,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await deleteStarStory(id);
-    
+
     // Track analytics
     await trackAnalytics('star_story_deleted', { id }, token.userId);
 

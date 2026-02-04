@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Providers } from "@/components/Providers";
 
 export const metadata: Metadata = {
     title: {
@@ -7,7 +8,6 @@ export const metadata: Metadata = {
         default: 'Skillsyncc | AI Career Copilot for the Expert Era',
     },
     description: "The world's most powerful AI job application assistant. Align, tailored, and land your dream role with expert precision.",
-    // SEO enhancements
     keywords: ["AI", "career", "job application", "resume optimization", "ATS optimization", "job search", "interview prep", "networking", "professional", "employment", "recruitment", "hiring", "talent acquisition"],
     authors: [{ name: "Skillsyncc Team" }],
     creator: "Skillsyncc",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
         siteName: "Skillsyncc",
         images: [
             {
-                url: typeof process.env.NEXT_PUBLIC_SITE_URL !== 'undefined' ? `${process.env.NEXT_PUBLIC_SITE_URL}/og-image.jpg` : 'https://skillsyncc-eta.vercel.app/og-image.jpg', // Add your og image
+                url: typeof process.env.NEXT_PUBLIC_SITE_URL !== 'undefined' ? `${process.env.NEXT_PUBLIC_SITE_URL}/og-image.jpg` : 'https://skillsyncc-eta.vercel.app/og-image.jpg',
                 width: 1200,
                 height: 630,
             },
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
         card: "summary_large_image",
         title: "Skillsyncc | AI Career Copilot for the Expert Era",
         description: "The world's most powerful AI job application assistant.",
-        images: [typeof process.env.NEXT_PUBLIC_SITE_URL !== 'undefined' ? `${process.env.NEXT_PUBLIC_SITE_URL}/twitter-image.jpg` : 'https://skillsyncc-eta.vercel.app/twitter-image.jpg'], // Add your twitter image
+        images: [typeof process.env.NEXT_PUBLIC_SITE_URL !== 'undefined' ? `${process.env.NEXT_PUBLIC_SITE_URL}/twitter-image.jpg` : 'https://skillsyncc-eta.vercel.app/twitter-image.jpg'],
     },
     robots: {
         index: true,
@@ -53,14 +53,6 @@ export const metadata: Metadata = {
             'max-snippet': -1,
         },
     },
-    verification: {
-        google: 'google-site-verification-code',
-        yandex: 'yandex-verification-code',
-        yahoo: 'yahoo-site-verification-code',
-        other: {
-            'msvalidate.01': 'bing-verification-code',
-        },
-    },
     alternates: {
         canonical: typeof process.env.NEXT_PUBLIC_SITE_URL !== 'undefined' ? process.env.NEXT_PUBLIC_SITE_URL : 'https://skillsyncc-eta.vercel.app/',
     },
@@ -69,7 +61,6 @@ export const metadata: Metadata = {
         shortcut: '/favicon-16x16.png',
         apple: '/apple-touch-icon.png',
     },
-
 };
 
 export const viewport = {
@@ -87,7 +78,9 @@ export default function RootLayout({
     return (
         <html lang="en" className="dark scroll-smooth">
             <body className="antialiased bg-[#0A0A0B] selection:bg-[#FFD700] selection:text-black">
-                {children}
+                <Providers>
+                    {children}
+                </Providers>
             </body>
         </html>
     );

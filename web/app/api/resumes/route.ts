@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, getResumesByProfileId, createResume, deleteResume, getProfileByUserId, trackAnalytics, resumes } from '@/lib/db';
+import { db, getResumesByProfileId, createResume, deleteResume, getProfileByUserId, trackAnalytics, resumes as resumesTable } from '@/lib/db';
 import { getToken } from '@/lib/auth';
 import { z } from 'zod';
 import { eq } from 'drizzle-orm';
@@ -48,13 +48,13 @@ export async function POST(request: NextRequest) {
 
     // If this is set as primary, unset other resumes
     if (validatedData.isPrimary) {
-      await db.update(resumes)
-        .set({ isPrimary: false })
-        .where(eq(resumes.profileId, profile.id));
+      await db.update(resumesTable)
+        .set({ isPrimary: false } as any)
+        .where(eq(resumesTable.profileId, profile.id));
     }
 
     const resume = await createResume(profile.id, validatedData);
-    
+
     // Track analytics
     await trackAnalytics('resume_created', {
       name: validatedData.name,
@@ -83,7 +83,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     await deleteResume(id);
-    
+
     // Track analytics
     await trackAnalytics('resume_deleted', { id }, token.userId);
 

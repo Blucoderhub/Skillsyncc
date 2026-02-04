@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, getExperiencesByProfileId, createExperience, updateExperience, deleteExperience, getProfileByUserId } from '@/lib/db';
+import { db, getExperiencesByProfileId, createExperience, updateExperience, deleteExperience, getProfileByUserId, trackAnalytics } from '@/lib/db';
 import { getToken } from '@/lib/auth';
 import { z } from 'zod';
 import { eq, desc } from 'drizzle-orm';

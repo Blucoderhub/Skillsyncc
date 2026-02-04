@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, getUserSettings, updateUserSettings } from '@/lib/db';
+import { db, getUserSettings, updateUserSettings, createUserSettings, trackAnalytics, settings as settingsTable } from '@/lib/db';
 import { getToken } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     }
 
     let settings = await getUserSettings(token.userId);
-    
+
     // Create default settings if don't exist
     if (!settings) {
       settings = await createUserSettings(token.userId);
@@ -47,7 +47,7 @@ export async function PUT(request: NextRequest) {
     const validatedData = settingsSchema.parse(body);
 
     const settings = await updateUserSettings(token.userId, validatedData);
-    
+
     // Track analytics
     await trackAnalytics('settings_updated', validatedData, token.userId);
 
