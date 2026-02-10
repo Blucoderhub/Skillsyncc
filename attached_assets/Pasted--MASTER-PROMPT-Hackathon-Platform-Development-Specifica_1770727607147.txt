@@ -1,0 +1,425 @@
+# MASTER PROMPT: Hackathon Platform Development Specification
+
+## Project Overview
+Build a comprehensive hackathon hosting platform with educational content, multi-tier authentication, and dynamic pricing based on user location.
+
+## 1. AUTHENTICATION SYSTEM (OAuth Implementation)
+
+### 1.1 User Authentication Methods
+- **OAuth 2.0 Providers:**
+  - Google OAuth
+  - GitHub OAuth
+  - LinkedIn OAuth
+  - Microsoft Azure AD
+  - Email/Password (fallback)
+
+### 1.2 User Types & Access Levels
+```
+├── Individual Users (Participants)
+│   ├── Free Tier
+│   └── Premium Tier
+├── Organizations (Hackathon Hosts)
+│   ├── Startup Plan
+│   ├── Business Plan
+│   └── Enterprise Plan
+└── Admin (Platform Management)
+    └── Super Admin Access
+```
+
+### 1.3 Authentication Flow
+1. User selects login method (OAuth provider or email)
+2. Redirect to OAuth provider authorization page
+3. Callback with authorization code
+4. Exchange code for access token
+5. Retrieve user profile information
+6. Create/update user in database
+7. Generate JWT session token
+8. Store session with role-based permissions
+
+### 1.4 Security Requirements
+- Implement JWT tokens with refresh mechanism
+- Session timeout: 24 hours (configurable)
+- Password requirements: min 8 chars, uppercase, lowercase, number, special char
+- Two-Factor Authentication (2FA) optional for users, mandatory for admins
+- Rate limiting on login attempts (5 attempts per 15 minutes)
+- HTTPS only for all authentication endpoints
+
+---
+
+## 2. EDUCATIONAL CONTENT SYSTEM (W3Schools-Inspired)
+
+### 2.1 Content Structure
+Organize content similar to W3Schools but with unique presentation:
+```
+Learning Paths:
+├── Web Development
+│   ├── Frontend
+│   │   ├── HTML/CSS Fundamentals
+│   │   ├── JavaScript Essentials
+│   │   ├── React.js
+│   │   ├── Vue.js
+│   │   └── Responsive Design
+│   ├── Backend
+│   │   ├── Node.js
+│   │   ├── Python/Django
+│   │   ├── REST APIs
+│   │   └── GraphQL
+│   └── Full Stack Projects
+├── Mobile Development
+│   ├── React Native
+│   ├── Flutter
+│   └── iOS/Android Native
+├── Data Science & AI
+│   ├── Python for Data Science
+│   ├── Machine Learning Basics
+│   ├── TensorFlow/PyTorch
+│   └── Data Visualization
+├── Blockchain & Web3
+│   ├── Solidity
+│   ├── Smart Contracts
+│   └── DApp Development
+└── DevOps & Cloud
+    ├── Docker/Kubernetes
+    ├── AWS/Azure/GCP
+    └── CI/CD Pipelines
+```
+
+### 2.2 Content Presentation Features
+- **Interactive Code Editor:** Live code playground with syntax highlighting
+- **Try It Yourself:** Editable examples with instant preview
+- **Quizzes & Challenges:** End-of-section assessments
+- **Progress Tracking:** Visual progress bars and completion badges
+- **Certificates:** Downloadable certificates upon course completion
+- **Code Snippets Library:** Searchable, categorized code examples
+- **Video Tutorials:** Embedded video explanations (optional)
+- **Community Solutions:** User-submitted alternative solutions
+
+### 2.3 Unique Differentiators from W3Schools
+- **Hackathon Integration:** Link tutorials to relevant hackathon challenges
+- **Project-Based Learning:** Each module ends with a mini-project
+- **Peer Review System:** Users can review and comment on others' solutions
+- **Difficulty Levels:** Beginner, Intermediate, Advanced paths
+- **Real-World Projects:** Industry-relevant case studies
+- **API Integration Examples:** Live API demonstrations
+- **Gamification:** Points, leaderboards, and achievement badges
+
+---
+
+## 3. ADMIN PANEL FEATURES
+
+### 3.1 Admin Dashboard
+- **Analytics Overview:**
+  - Total users, organizations, hackathons
+  - Revenue metrics by country/region
+  - User engagement statistics
+  - Popular learning paths
+  - Active hackathons status
+
+### 3.2 Hackathon Management
+- **Create Hackathon:**
+  - Basic Info: Title, description, theme, tags
+  - Dates: Registration deadline, start date, end date
+  - Eligibility: Age restrictions, team size, skill level
+  - Prizes: Prize pool, prize distribution structure
+  - Judging Criteria: Custom weightage system
+  - Sponsorship: Add sponsor logos and tiers
+  
+- **Manage Submissions:**
+  - Review submissions
+  - Assign judges
+  - Track judging progress
+  - Announce winners
+  
+- **Communication Tools:**
+  - Email announcements to participants
+  - Push notifications
+  - In-app messaging
+
+### 3.3 Content Management
+- **Create/Edit Learning Content:**
+  - WYSIWYG editor for tutorials
+  - Upload code examples
+  - Add quiz questions
+  - Organize content hierarchy
+  
+- **Moderation:**
+  - Approve user-generated content
+  - Manage community comments
+  - Handle reported content
+
+### 3.4 User Management
+- Ban/suspend users
+- Manage user roles and permissions
+- View user activity logs
+- Handle support tickets
+
+### 3.5 Financial Management
+- View transaction history
+- Export revenue reports
+- Manage pricing by country
+- Configure payment gateways
+- Set commission rates for platform
+
+---
+
+## 4. ORGANIZATIONAL LOGIN & FEATURES
+
+### 4.1 Organization Registration
+- Company name, website, industry
+- Logo upload (PNG, SVG)
+- Company description
+- Social media links
+- Verification process (email + optional document verification)
+
+### 4.2 Organization Dashboard
+- **Host Hackathons:**
+  - Create unlimited hackathons (based on plan)
+  - Custom branding for hackathon pages
+  - Participant management
+  - Submission review interface
+  
+- **Analytics:**
+  - Participant demographics
+  - Submission statistics
+  - Engagement metrics
+  - ROI tracking
+  
+- **Talent Pool:**
+  - Access to participant profiles (with consent)
+  - Download resumes
+  - Recruitment pipeline integration
+  
+- **Team Management:**
+  - Add team members with role-based access
+  - Collaborate on hackathon creation
+  
+- **Billing:**
+  - View invoices
+  - Upgrade/downgrade plans
+  - Payment history
+
+### 4.3 Organization Plans & Pricing
+```
+Startup Plan:
+- Host 2 hackathons/year
+- Max 100 participants per hackathon
+- Basic analytics
+- Email support
+
+Business Plan:
+- Host 6 hackathons/year
+- Max 500 participants per hackathon
+- Advanced analytics
+- Custom branding
+- Priority support
+
+Enterprise Plan:
+- Unlimited hackathons
+- Unlimited participants
+- White-label option
+- Dedicated account manager
+- API access
+- Custom integrations
+```
+
+---
+
+## 5. DYNAMIC PRICING BY COUNTRY
+
+### 5.1 Location Detection
+- **Primary Method:** IP Geolocation API (e.g., MaxMind, ipapi.co)
+- **Fallback:** User-selected country during registration
+- **Currency Detection:** Auto-detect based on location
+- **Tax Calculation:** Apply VAT/GST based on local regulations
+
+### 5.2 Pricing Tiers by Region
+
+**Region-Based Multipliers:**
+```javascript
+const pricingMultipliers = {
+  tier1: {
+    // North America, Western Europe, Australia
+    countries: ['US', 'CA', 'GB', 'DE', 'FR', 'AU', 'NL', 'SE', 'NO', 'CH'],
+    multiplier: 1.0,
+    currency: 'USD/EUR/GBP/AUD'
+  },
+  tier2: {
+    // Eastern Europe, South America, Middle East
+    countries: ['PL', 'BR', 'MX', 'AR', 'AE', 'SA', 'CZ', 'GR'],
+    multiplier: 0.6,
+    currency: 'Local Currency'
+  },
+  tier3: {
+    // Asia (excluding high-income), Africa
+    countries: ['IN', 'PK', 'BD', 'NG', 'KE', 'ID', 'PH', 'VN', 'EG'],
+    multiplier: 0.3,
+    currency: 'Local Currency'
+  },
+  tier4: {
+    // Low-income countries
+    countries: ['NP', 'LK', 'GH', 'UG', 'MM'],
+    multiplier: 0.15,
+    currency: 'Local Currency'
+  }
+};
+```
+
+**Base Pricing (USD - Tier 1):**
+```
+Individual Users:
+- Free Tier: $0
+- Premium: $9.99/month or $99/year
+
+Organizations:
+- Startup: $299/year
+- Business: $999/year
+- Enterprise: Custom pricing
+
+Hackathon Hosting Fee:
+- Platform commission: 5-10% of prize pool
+```
+
+### 5.3 Implementation Details
+- Display prices in local currency with USD equivalent
+- Update exchange rates daily via API (e.g., exchangerate-api.com)
+- Show regional pricing disclaimer
+- Allow manual country override with verification
+- Implement PPP (Purchasing Power Parity) adjustments annually
+
+### 5.4 Payment Gateway Integration
+- **International:** Stripe (supports 135+ currencies)
+- **India-specific:** Razorpay
+- **Additional:** PayPal, cryptocurrency (optional)
+- Support for local payment methods (UPI, PIX, etc.)
+
+---
+
+## 6. DATABASE SCHEMA (High-Level)
+```sql
+-- Users Table
+users (
+  id, email, username, password_hash, oauth_provider, 
+  oauth_id, role, country_code, currency, created_at, 
+  email_verified, two_fa_enabled
+)
+
+-- Organizations Table
+organizations (
+  id, name, website, logo_url, industry, plan_type,
+  verified, created_at, country_code
+)
+
+-- Hackathons Table
+hackathons (
+  id, title, description, theme, organization_id,
+  start_date, end_date, registration_deadline,
+  prize_pool, max_participants, status, created_by
+)
+
+-- Learning Content Table
+learning_content (
+  id, title, slug, content, category, difficulty_level,
+  author_id, views, likes, published_at
+)
+
+-- Pricing Table
+pricing_by_country (
+  id, country_code, region_tier, multiplier,
+  currency_code, updated_at
+)
+
+-- Transactions Table
+transactions (
+  id, user_id, amount, currency, country_code,
+  payment_gateway, status, created_at
+)
+```
+
+---
+
+## 7. TECHNICAL STACK RECOMMENDATIONS
+
+**Frontend:**
+- React.js or Next.js (for SEO)
+- TailwindCSS or Material-UI
+- Redux/Zustand for state management
+- Monaco Editor for code playground
+
+**Backend:**
+- Node.js + Express.js OR Python + Django/FastAPI
+- PostgreSQL (primary database)
+- Redis (caching, session management)
+- AWS S3 (file storage)
+
+**Authentication:**
+- Passport.js (Node) or Authlib (Python)
+- JWT tokens
+- OAuth 2.0 implementation
+
+**APIs & Services:**
+- Geolocation: ipapi.co or MaxMind
+- Payment: Stripe, Razorpay
+- Email: SendGrid or AWS SES
+- CDN: CloudFlare
+
+**DevOps:**
+- Docker containers
+- AWS/GCP/Azure hosting
+- GitHub Actions for CI/CD
+- Monitoring: DataDog or New Relic
+
+---
+
+## 8. IMPLEMENTATION PHASES
+
+**Phase 1 (MVP - 8-10 weeks):**
+- Basic OAuth authentication
+- User and organization registration
+- Create/host hackathons
+- Basic admin panel
+- Static pricing
+
+**Phase 2 (12-14 weeks):**
+- Educational content system (first 3 learning paths)
+- Interactive code editor
+- Dynamic pricing by country
+- Payment integration
+
+**Phase 3 (16-18 weeks):**
+- Advanced admin features
+- Analytics dashboard
+- Gamification elements
+- Mobile app (optional)
+
+**Phase 4 (Ongoing):**
+- Content expansion
+- Community features
+- AI-powered recommendations
+- Advanced integrations
+
+---
+
+## 9. SECURITY & COMPLIANCE
+
+- GDPR compliance for EU users
+- CCPA compliance for California users
+- Data encryption at rest and in transit
+- Regular security audits
+- Bug bounty program
+- PCI DSS compliance for payments
+- COPPA compliance (if allowing users under 13)
+
+---
+
+## 10. SUCCESS METRICS
+
+- User registration rate
+- Hackathon completion rate
+- Learning content engagement
+- Revenue per country
+- Organization retention rate
+- Platform uptime (target: 99.9%)
+
+---
+
+## END OF MASTER PROMPT

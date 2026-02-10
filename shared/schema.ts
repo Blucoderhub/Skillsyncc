@@ -154,6 +154,16 @@ export const hackathons = pgTable("hackathons", {
   platform: text("platform").notNull(), // 'Devpost', 'Hack2Skill', etc.
   imageUrl: text("image_url"),
   tags: text("tags").array(),
+  hostOrgId: integer("host_org_id"),
+  registrationDeadline: timestamp("registration_deadline"),
+  maxParticipants: integer("max_participants"),
+  prizePool: text("prize_pool"),
+  rules: text("rules"),
+  judgingCriteria: text("judging_criteria"),
+  status: text("status").default("listed"), // 'listed', 'open', 'in_progress', 'judging', 'completed'
+  visibility: text("visibility").default("public"), // 'public', 'private', 'organization'
+  hostedOnPlatform: boolean("hosted_on_platform").default(false),
+  createdBy: text("created_by"),
 });
 
 // --- CERTIFICATES ---
@@ -218,6 +228,91 @@ export const challengeSubmissions = pgTable("challenge_submissions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// --- ORGANIZATIONS ---
+
+export const organizations = pgTable("organizations", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  logoUrl: text("logo_url"),
+  website: text("website"),
+  industry: text("industry"),
+  countryCode: text("country_code"),
+  ownerUserId: text("owner_user_id").notNull(),
+  verified: boolean("verified").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const organizationMembers = pgTable("organization_members", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  userId: text("user_id").notNull(),
+  role: text("role").notNull().default("member"), // 'owner', 'admin', 'judge', 'member'
+  joinedAt: timestamp("joined_at").defaultNow(),
+});
+
+// --- HACKATHON HOSTING ---
+
+export const hackathonRegistrations = pgTable("hackathon_registrations", {
+  id: serial("id").primaryKey(),
+  hackathonId: integer("hackathon_id").notNull().references(() => hackathons.id),
+  userId: text("user_id").notNull(),
+  teamId: integer("team_id"),
+  status: text("status").default("registered"), // 'registered', 'confirmed', 'withdrawn'
+  registeredAt: timestamp("registered_at").defaultNow(),
+});
+
+export const hackathonTeams = pgTable("hackathon_teams", {
+  id: serial("id").primaryKey(),
+  hackathonId: integer("hackathon_id").notNull().references(() => hackathons.id),
+  name: text("name").notNull(),
+  captainUserId: text("captain_user_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const teamMembers = pgTable("team_members", {
+  id: serial("id").primaryKey(),
+  teamId: integer("team_id").notNull().references(() => hackathonTeams.id),
+  userId: text("user_id").notNull(),
+  joinedAt: timestamp("joined_at").defaultNow(),
+});
+
+export const hackathonSubmissions = pgTable("hackathon_submissions", {
+  id: serial("id").primaryKey(),
+  hackathonId: integer("hackathon_id").notNull().references(() => hackathons.id),
+  userId: text("user_id").notNull(),
+  teamId: integer("team_id"),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  repoUrl: text("repo_url"),
+  demoUrl: text("demo_url"),
+  videoUrl: text("video_url"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  score: integer("score"),
+  rank: integer("rank"),
+  status: text("status").default("submitted"), // 'submitted', 'reviewed', 'winner', 'disqualified'
+});
+
+export const judgingCriteria = pgTable("judging_criteria", {
+  id: serial("id").primaryKey(),
+  hackathonId: integer("hackathon_id").notNull().references(() => hackathons.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  weight: integer("weight").notNull().default(1), // e.g. 1-10 importance
+  maxScore: integer("max_score").notNull().default(10),
+});
+
+export const judgingScores = pgTable("judging_scores", {
+  id: serial("id").primaryKey(),
+  submissionId: integer("submission_id").notNull().references(() => hackathonSubmissions.id),
+  judgeUserId: text("judge_user_id").notNull(),
+  criterionId: integer("criterion_id").notNull().references(() => judgingCriteria.id),
+  score: integer("score").notNull(),
+  comment: text("comment"),
+  scoredAt: timestamp("scored_at").defaultNow(),
+});
+
 // --- RELATIONS ---
 export const submissionsRelations = relations(submissions, ({ one }) => ({
   problem: one(problems, {
@@ -262,6 +357,65 @@ export const answersRelations = relations(answers, ({ one }) => ({
   }),
 }));
 
+export const organizationsRelations = relations(organizations, ({ many }) => ({
+  members: many(organizationMembers),
+}));
+
+export const organizationMembersRelations = relations(organizationMembers, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [organizationMembers.organizationId],
+    references: [organizations.id],
+  }),
+}));
+
+export const hackathonRegistrationsRelations = relations(hackathonRegistrations, ({ one }) => ({
+  hackathon: one(hackathons, {
+    fields: [hackathonRegistrations.hackathonId],
+    references: [hackathons.id],
+  }),
+}));
+
+export const hackathonTeamsRelations = relations(hackathonTeams, ({ one, many }) => ({
+  hackathon: one(hackathons, {
+    fields: [hackathonTeams.hackathonId],
+    references: [hackathons.id],
+  }),
+  members: many(teamMembers),
+}));
+
+export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
+  team: one(hackathonTeams, {
+    fields: [teamMembers.teamId],
+    references: [hackathonTeams.id],
+  }),
+}));
+
+export const hackathonSubmissionsRelations = relations(hackathonSubmissions, ({ one, many }) => ({
+  hackathon: one(hackathons, {
+    fields: [hackathonSubmissions.hackathonId],
+    references: [hackathons.id],
+  }),
+  scores: many(judgingScores),
+}));
+
+export const judgingCriteriaRelations = relations(judgingCriteria, ({ one }) => ({
+  hackathon: one(hackathons, {
+    fields: [judgingCriteria.hackathonId],
+    references: [hackathons.id],
+  }),
+}));
+
+export const judgingScoresRelations = relations(judgingScores, ({ one }) => ({
+  submission: one(hackathonSubmissions, {
+    fields: [judgingScores.submissionId],
+    references: [hackathonSubmissions.id],
+  }),
+  criterion: one(judgingCriteria, {
+    fields: [judgingScores.criterionId],
+    references: [judgingCriteria.id],
+  }),
+}));
+
 // --- SCHEMAS ---
 export const insertProblemSchema = createInsertSchema(problems).omit({ id: true });
 export const insertSubmissionSchema = createInsertSchema(submissions).omit({ id: true, createdAt: true });
@@ -275,6 +429,14 @@ export const insertCertificateSchema = createInsertSchema(certificates).omit({ i
 export const insertProjectSchema = createInsertSchema(projects).omit({ id: true, createdAt: true, updatedAt: true, likes: true, views: true, featured: true });
 export const insertMonthlyChallengeSchema = createInsertSchema(monthlyChallenges).omit({ id: true, createdAt: true });
 export const insertChallengeSubmissionSchema = createInsertSchema(challengeSubmissions).omit({ id: true, createdAt: true, status: true, rank: true });
+export const insertOrganizationSchema = createInsertSchema(organizations).omit({ id: true, createdAt: true, verified: true });
+export const insertOrgMemberSchema = createInsertSchema(organizationMembers).omit({ id: true, joinedAt: true });
+export const insertHackathonRegistrationSchema = createInsertSchema(hackathonRegistrations).omit({ id: true, registeredAt: true });
+export const insertHackathonTeamSchema = createInsertSchema(hackathonTeams).omit({ id: true, createdAt: true });
+export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id: true, joinedAt: true });
+export const insertHackathonSubmissionSchema = createInsertSchema(hackathonSubmissions).omit({ id: true, submittedAt: true, score: true, rank: true, status: true });
+export const insertJudgingCriterionSchema = createInsertSchema(judgingCriteria).omit({ id: true });
+export const insertJudgingScoreSchema = createInsertSchema(judgingScores).omit({ id: true, scoredAt: true });
 
 // --- TYPES ---
 export type Problem = typeof problems.$inferSelect;
@@ -300,6 +462,21 @@ export type MonthlyChallenge = typeof monthlyChallenges.$inferSelect;
 export type InsertMonthlyChallenge = z.infer<typeof insertMonthlyChallengeSchema>;
 export type ChallengeSubmission = typeof challengeSubmissions.$inferSelect;
 export type InsertChallengeSubmission = z.infer<typeof insertChallengeSubmissionSchema>;
+export type Organization = typeof organizations.$inferSelect;
+export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+export type OrganizationMember = typeof organizationMembers.$inferSelect;
+export type InsertOrgMember = z.infer<typeof insertOrgMemberSchema>;
+export type HackathonRegistration = typeof hackathonRegistrations.$inferSelect;
+export type InsertHackathonRegistration = z.infer<typeof insertHackathonRegistrationSchema>;
+export type HackathonTeam = typeof hackathonTeams.$inferSelect;
+export type InsertHackathonTeam = z.infer<typeof insertHackathonTeamSchema>;
+export type TeamMember = typeof teamMembers.$inferSelect;
+export type HackathonSubmission = typeof hackathonSubmissions.$inferSelect;
+export type InsertHackathonSubmission = z.infer<typeof insertHackathonSubmissionSchema>;
+export type JudgingCriterion = typeof judgingCriteria.$inferSelect;
+export type InsertJudgingCriterion = z.infer<typeof insertJudgingCriterionSchema>;
+export type JudgingScore = typeof judgingScores.$inferSelect;
+export type InsertJudgingScore = z.infer<typeof insertJudgingScoreSchema>;
 
 // --- API TYPES ---
 export type ProblemResponse = Problem & { isSolved?: boolean };

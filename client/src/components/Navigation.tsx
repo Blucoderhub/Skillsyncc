@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useUserStats } from "@/hooks/use-user-stats";
 import { useQuery } from "@tanstack/react-query";
-import { Code2, Swords, Trophy, LogOut, Terminal, Map, BookOpen, MessageSquare, Calendar, Shield, Crown, Award, Folder, Target } from "lucide-react";
+import { Code2, Swords, Trophy, LogOut, Terminal, Map, BookOpen, MessageSquare, Calendar, Shield, Crown, Award, Folder, Target, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Navigation() {
@@ -64,6 +64,19 @@ export function Navigation() {
         </nav>
 
         <div className="flex items-center gap-1 shrink-0">
+          <Link
+            href="/organizations"
+            className={cn(
+              "flex items-center gap-1 px-1.5 py-1.5 rounded-md text-[10px] transition-colors",
+              location === "/organizations"
+                ? "bg-primary/10 text-primary border border-primary/20"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+            data-testid="nav-organizations"
+            title="Organizations"
+          >
+            <Building2 className="h-3.5 w-3.5" />
+          </Link>
           {adminCheck?.isAdmin && (
             <Link 
               href="/admin" 

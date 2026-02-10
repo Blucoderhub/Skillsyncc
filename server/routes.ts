@@ -444,6 +444,385 @@ export async function registerRoutes(
   // END CLUB MEMBERSHIP ROUTES
   // ==========================================
 
+  // ==========================================
+  // ORGANIZATION ROUTES
+  // ==========================================
+
+  app.get("/api/organizations", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const orgs = await storage.getUserOrganizations(userId);
+    res.json(orgs);
+  });
+
+  app.get("/api/organizations/:id", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    const org = await storage.getOrganizationById(id);
+    if (!org) return res.status(404).json({ error: "Organization not found" });
+    res.json(org);
+  });
+
+  app.get("/api/organizations/slug/:slug", async (req: Request, res: Response) => {
+    const org = await storage.getOrganizationBySlug(req.params.slug);
+    if (!org) return res.status(404).json({ error: "Organization not found" });
+    res.json(org);
+  });
+
+  app.post("/api/organizations", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const { name, description, website, industry, countryCode, logoUrl } = req.body;
+    
+    if (!name) return res.status(400).json({ error: "Organization name is required" });
+    
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const existing = await storage.getOrganizationBySlug(slug);
+    if (existing) return res.status(400).json({ error: "Organization name already taken" });
+    
+    const org = await storage.createOrganization({
+      name,
+      slug,
+      description: description || null,
+      website: website || null,
+      industry: industry || null,
+      countryCode: countryCode || null,
+      logoUrl: logoUrl || null,
+      ownerUserId: userId,
+    });
+    res.json(org);
+  });
+
+  app.patch("/api/organizations/:id", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const id = parseInt(req.params.id);
+    
+    const role = await storage.getOrgMemberRole(id, userId);
+    if (!role || !['owner', 'admin'].includes(role)) {
+      return res.status(403).json({ error: "Not authorized to update this organization" });
+    }
+    
+    const { name, description, website, industry, logoUrl } = req.body;
+    const org = await storage.updateOrganization(id, { name, description, website, industry, logoUrl });
+    res.json(org);
+  });
+
+  app.delete("/api/organizations/:id", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const id = parseInt(req.params.id);
+    
+    const role = await storage.getOrgMemberRole(id, userId);
+    if (role !== 'owner') {
+      return res.status(403).json({ error: "Only the owner can delete an organization" });
+    }
+    
+    await storage.deleteOrganization(id);
+    res.json({ success: true });
+  });
+
+  app.get("/api/organizations/:id/members", isAuthenticated, async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    const members = await storage.getOrgMembers(id);
+    res.json(members);
+  });
+
+  app.post("/api/organizations/:id/members", isAuthenticated, async (req: Request, res: Response) => {
+    const currentUserId = (req as any).user?.claims?.sub;
+    const orgId = parseInt(req.params.id);
+    
+    const role = await storage.getOrgMemberRole(orgId, currentUserId);
+    if (!role || !['owner', 'admin'].includes(role)) {
+      return res.status(403).json({ error: "Not authorized to add members" });
+    }
+    
+    const { userId, memberRole } = req.body;
+    if (!userId) return res.status(400).json({ error: "User ID is required" });
+    
+    const existingRole = await storage.getOrgMemberRole(orgId, userId);
+    if (existingRole) return res.status(400).json({ error: "User is already a member" });
+    
+    const member = await storage.addOrgMember(orgId, userId, memberRole || 'member');
+    res.json(member);
+  });
+
+  app.delete("/api/organizations/:id/members/:userId", isAuthenticated, async (req: Request, res: Response) => {
+    const currentUserId = (req as any).user?.claims?.sub;
+    const orgId = parseInt(req.params.id);
+    const targetUserId = req.params.userId;
+    
+    const role = await storage.getOrgMemberRole(orgId, currentUserId);
+    if (!role || !['owner', 'admin'].includes(role)) {
+      return res.status(403).json({ error: "Not authorized to remove members" });
+    }
+    
+    if (targetUserId === currentUserId && role === 'owner') {
+      return res.status(400).json({ error: "Owner cannot remove themselves" });
+    }
+    
+    await storage.removeOrgMember(orgId, targetUserId);
+    res.json({ success: true });
+  });
+
+  // ==========================================
+  // HACKATHON HOSTING ROUTES
+  // ==========================================
+
+  app.get("/api/hosted-hackathons", async (_req: Request, res: Response) => {
+    const hostedHackathons = await storage.getHostedHackathons();
+    const hackathonsWithCounts = await Promise.all(
+      hostedHackathons.map(async (h) => {
+        const regCount = await storage.getHackathonRegistrationCount(h.id);
+        return { ...h, registrationCount: regCount };
+      })
+    );
+    res.json(hackathonsWithCounts);
+  });
+
+  app.get("/api/hosted-hackathons/:id", async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
+    const hackathon = await storage.getHackathonById(id);
+    if (!hackathon) return res.status(404).json({ error: "Hackathon not found" });
+    
+    const regCount = await storage.getHackathonRegistrationCount(id);
+    const teams = await storage.getHackathonTeams(id);
+    const criteria = await storage.getJudgingCriteria(id);
+    
+    res.json({ ...hackathon, registrationCount: regCount, teams, judgingCriteria: criteria });
+  });
+
+  app.post("/api/hosted-hackathons", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const { 
+      title, description, startDate, endDate, registrationDeadline,
+      maxParticipants, prizePool, rules, hostOrgId, tags, imageUrl, url
+    } = req.body;
+    
+    if (!title || !description || !startDate || !endDate) {
+      return res.status(400).json({ error: "Title, description, start date, and end date are required" });
+    }
+    
+    if (hostOrgId) {
+      const role = await storage.getOrgMemberRole(hostOrgId, userId);
+      if (!role || !['owner', 'admin'].includes(role)) {
+        return res.status(403).json({ error: "Not authorized to create hackathons for this organization" });
+      }
+    }
+    
+    const hackathon = await storage.createHostedHackathon({
+      title,
+      description,
+      url: url || '',
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      registrationDeadline: registrationDeadline ? new Date(registrationDeadline) : null,
+      maxParticipants: maxParticipants || null,
+      prizePool: prizePool || null,
+      rules: rules || null,
+      hostOrgId: hostOrgId || null,
+      platform: 'BlueCoderHub',
+      tags: tags || [],
+      imageUrl: imageUrl || null,
+      status: 'open',
+      visibility: 'public',
+      createdBy: userId,
+    });
+    res.json(hackathon);
+  });
+
+  app.patch("/api/hosted-hackathons/:id", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const id = parseInt(req.params.id);
+    
+    const hackathon = await storage.getHackathonById(id);
+    if (!hackathon) return res.status(404).json({ error: "Hackathon not found" });
+    
+    if (hackathon.createdBy !== userId) {
+      if (hackathon.hostOrgId) {
+        const role = await storage.getOrgMemberRole(hackathon.hostOrgId, userId);
+        if (!role || !['owner', 'admin'].includes(role)) {
+          return res.status(403).json({ error: "Not authorized" });
+        }
+      } else {
+        return res.status(403).json({ error: "Not authorized" });
+      }
+    }
+    
+    const updated = await storage.updateHostedHackathon(id, req.body);
+    res.json(updated);
+  });
+
+  // Registration
+  app.post("/api/hosted-hackathons/:id/register", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const hackathonId = parseInt(req.params.id);
+    
+    const hackathon = await storage.getHackathonById(hackathonId);
+    if (!hackathon) return res.status(404).json({ error: "Hackathon not found" });
+    
+    if (hackathon.registrationDeadline && new Date() > new Date(hackathon.registrationDeadline)) {
+      return res.status(400).json({ error: "Registration deadline has passed" });
+    }
+    
+    if (hackathon.maxParticipants) {
+      const regCount = await storage.getHackathonRegistrationCount(hackathonId);
+      if (regCount >= hackathon.maxParticipants) {
+        return res.status(400).json({ error: "Hackathon is full" });
+      }
+    }
+    
+    const existing = await storage.getUserHackathonRegistration(hackathonId, userId);
+    if (existing) return res.status(400).json({ error: "Already registered" });
+    
+    const reg = await storage.registerForHackathon(hackathonId, userId);
+    res.json(reg);
+  });
+
+  app.get("/api/hosted-hackathons/:id/registration", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const hackathonId = parseInt(req.params.id);
+    const reg = await storage.getUserHackathonRegistration(hackathonId, userId);
+    res.json({ registered: !!reg, registration: reg || null });
+  });
+
+  app.delete("/api/hosted-hackathons/:id/register", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const hackathonId = parseInt(req.params.id);
+    await storage.withdrawFromHackathon(hackathonId, userId);
+    res.json({ success: true });
+  });
+
+  app.get("/api/hosted-hackathons/:id/registrations", isAuthenticated, async (req: Request, res: Response) => {
+    const hackathonId = parseInt(req.params.id);
+    const registrations = await storage.getHackathonRegistrations(hackathonId);
+    res.json(registrations);
+  });
+
+  // Teams
+  app.post("/api/hosted-hackathons/:id/teams", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const hackathonId = parseInt(req.params.id);
+    const { name } = req.body;
+    
+    if (!name) return res.status(400).json({ error: "Team name is required" });
+    
+    const reg = await storage.getUserHackathonRegistration(hackathonId, userId);
+    if (!reg) return res.status(400).json({ error: "Must be registered to create a team" });
+    
+    const team = await storage.createTeam(hackathonId, name, userId);
+    res.json(team);
+  });
+
+  app.get("/api/hosted-hackathons/:id/teams", async (req: Request, res: Response) => {
+    const hackathonId = parseInt(req.params.id);
+    const teams = await storage.getHackathonTeams(hackathonId);
+    res.json(teams);
+  });
+
+  app.post("/api/teams/:teamId/members", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const teamId = parseInt(req.params.teamId);
+    
+    const team = await storage.getTeamById(teamId);
+    if (!team) return res.status(404).json({ error: "Team not found" });
+    
+    const reg = await storage.getUserHackathonRegistration(team.hackathonId, userId);
+    if (!reg) return res.status(400).json({ error: "Must be registered for the hackathon" });
+    
+    const member = await storage.addTeamMember(teamId, userId);
+    res.json(member);
+  });
+
+  app.delete("/api/teams/:teamId/members", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const teamId = parseInt(req.params.teamId);
+    await storage.removeTeamMember(teamId, userId);
+    res.json({ success: true });
+  });
+
+  // Submissions
+  app.post("/api/hosted-hackathons/:id/submissions", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const hackathonId = parseInt(req.params.id);
+    const { title, description, repoUrl, demoUrl, videoUrl, teamId } = req.body;
+    
+    if (!title || !description) {
+      return res.status(400).json({ error: "Title and description are required" });
+    }
+    
+    const reg = await storage.getUserHackathonRegistration(hackathonId, userId);
+    if (!reg) return res.status(400).json({ error: "Must be registered to submit" });
+    
+    const submission = await storage.createHackathonSubmission({
+      hackathonId,
+      userId,
+      teamId: teamId || null,
+      title,
+      description,
+      repoUrl: repoUrl || null,
+      demoUrl: demoUrl || null,
+      videoUrl: videoUrl || null,
+    });
+    res.json(submission);
+  });
+
+  app.get("/api/hosted-hackathons/:id/submissions", async (req: Request, res: Response) => {
+    const hackathonId = parseInt(req.params.id);
+    const subs = await storage.getHackathonSubmissions(hackathonId);
+    res.json(subs);
+  });
+
+  // Judging
+  app.post("/api/hosted-hackathons/:id/criteria", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const hackathonId = parseInt(req.params.id);
+    
+    const hackathon = await storage.getHackathonById(hackathonId);
+    if (!hackathon) return res.status(404).json({ error: "Hackathon not found" });
+    
+    if (hackathon.createdBy !== userId && hackathon.hostOrgId) {
+      const role = await storage.getOrgMemberRole(hackathon.hostOrgId, userId);
+      if (!role || !['owner', 'admin'].includes(role)) {
+        return res.status(403).json({ error: "Not authorized" });
+      }
+    }
+    
+    const { name, description, weight, maxScore } = req.body;
+    const criterion = await storage.createJudgingCriterion(hackathonId, name, description || '', weight || 1, maxScore || 10);
+    res.json(criterion);
+  });
+
+  app.get("/api/hosted-hackathons/:id/criteria", async (req: Request, res: Response) => {
+    const hackathonId = parseInt(req.params.id);
+    const criteria = await storage.getJudgingCriteria(hackathonId);
+    res.json(criteria);
+  });
+
+  app.post("/api/submissions/:submissionId/score", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = (req as any).user?.claims?.sub;
+    const submissionId = parseInt(req.params.submissionId);
+    const { criterionId, score, comment } = req.body;
+    
+    if (!criterionId || score === undefined) {
+      return res.status(400).json({ error: "Criterion ID and score are required" });
+    }
+    
+    const result = await storage.submitJudgingScore({
+      submissionId,
+      judgeUserId: userId,
+      criterionId,
+      score,
+      comment: comment || null,
+    });
+    res.json(result);
+  });
+
+  app.get("/api/submissions/:submissionId/scores", async (req: Request, res: Response) => {
+    const submissionId = parseInt(req.params.submissionId);
+    const scores = await storage.getSubmissionScores(submissionId);
+    res.json(scores);
+  });
+
+  // ==========================================
+  // END HACKATHON HOSTING ROUTES
+  // ==========================================
+
   // Seed Data
   await seedDatabase();
 

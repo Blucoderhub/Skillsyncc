@@ -329,6 +329,70 @@ export function registerAdminRoutes(app: Express): void {
     }
   });
 
+  // --- ORGANIZATION MANAGEMENT ---
+
+  app.get("/api/admin/organizations", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const orgs = await storage.getAllOrganizations();
+      const orgsWithDetails = await Promise.all(
+        orgs.map(async (org: any) => {
+          const members = await storage.getOrgMembers(org.id);
+          const hackathons = await storage.getHostedHackathons(org.id);
+          const owner = await storage.getUser(org.ownerUserId);
+          return {
+            ...org,
+            memberCount: members.length,
+            hackathonCount: hackathons.length,
+            ownerName: owner ? `${owner.firstName || ''} ${owner.lastName || ''}`.trim() || owner.email || 'Unknown' : 'Unknown',
+          };
+        })
+      );
+      res.json(orgsWithDetails);
+    } catch (error) {
+      console.error("Error fetching organizations:", error);
+      res.status(500).json({ error: "Failed to fetch organizations" });
+    }
+  });
+
+  // --- HOSTED HACKATHON MANAGEMENT ---
+
+  app.get("/api/admin/hosted-hackathons", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const hackathons = await storage.getHostedHackathons();
+      const hackathonsWithDetails = await Promise.all(
+        hackathons.map(async (h: any) => {
+          const org = await storage.getOrganizationById(h.organizationId);
+          const registrations = await storage.getHackathonRegistrations(h.id);
+          return {
+            ...h,
+            organizationName: org?.name || 'Unknown',
+            registrationCount: registrations.length,
+          };
+        })
+      );
+      res.json(hackathonsWithDetails);
+    } catch (error) {
+      console.error("Error fetching hosted hackathons:", error);
+      res.status(500).json({ error: "Failed to fetch hosted hackathons" });
+    }
+  });
+
+  app.patch("/api/admin/hosted-hackathons/:id/status", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id as string);
+      const { status } = req.body;
+      const validStatuses = ["draft", "open", "in_progress", "judging", "completed"];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+      const hackathon = await storage.updateHostedHackathon(id, { status });
+      res.json(hackathon);
+    } catch (error) {
+      console.error("Error updating hosted hackathon status:", error);
+      res.status(500).json({ error: "Failed to update hackathon status" });
+    }
+  });
+
   // --- ADMIN STATS ---
 
   app.get("/api/admin/stats", isAuthenticated, isAdmin, async (req, res) => {

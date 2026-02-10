@@ -23,6 +23,8 @@ BlueCoderHub is a gamified ed-tech platform inspired by Codedex.io, combining fe
 8. **Certificates**: Verifiable course completion certificates (Club-only)
 9. **Portfolio Hosting**: Showcase projects with public profiles (Club-only)
 10. **Monthly Challenges**: Competitive coding challenges with prizes (Club-only)
+11. **Organization System**: Create/manage organizations with role-based access (owner/admin/judge/member)
+12. **Hackathon Hosting**: Organizations can create/manage hackathons with registration, teams, submissions, judging
 
 ## Project Structure
 ```
@@ -71,19 +73,50 @@ BlueCoderHub is a gamified ed-tech platform inspired by Codedex.io, combining fe
 - `GET /api/subscription` - Get user's subscription status
 - `POST /api/stripe/portal` - Create Stripe customer portal session
 
+### Organization Endpoints
+- `GET /api/organizations` - Get user's organizations
+- `POST /api/organizations` - Create organization
+- `GET /api/organizations/:id` - Get organization details
+- `PUT /api/organizations/:id` - Update organization
+- `POST /api/organizations/:id/members` - Add member
+- `DELETE /api/organizations/:id/members/:userId` - Remove member
+- `PATCH /api/organizations/:id/members/:userId/role` - Update member role
+
+### Hackathon Hosting Endpoints
+- `GET /api/hosted-hackathons` - List all hosted hackathons
+- `POST /api/organizations/:orgId/hackathons` - Create hackathon
+- `GET /api/hackathons/:id/details` - Get hackathon details
+- `PUT /api/hackathons/:id` - Update hackathon
+- `POST /api/hackathons/:id/register` - Register for hackathon
+- `DELETE /api/hackathons/:id/register` - Withdraw registration
+- `POST /api/hackathons/:id/teams` - Create team
+- `POST /api/hackathons/:id/teams/:teamId/join` - Join team
+- `POST /api/hackathons/:id/submissions` - Submit project
+- `POST /api/hackathons/:id/criteria` - Add judging criteria
+- `POST /api/hackathons/:id/scores` - Submit scores
+
 ## Database Tables
 - `users` - User accounts (Replit Auth) with Stripe/membership fields
 - `sessions` - Session storage
 - `problems` - Coding challenges
 - `submissions` - User code submissions
 - `user_progress` - XP, levels, streaks
-- `hackathons` - Hackathon listings
+- `hackathons` - Hackathon listings (external)
 - `conversations` - AI chat conversations
 - `messages` - AI chat messages
 - `certificates` - Course completion certificates (Club)
 - `projects` - Portfolio projects (Club)
 - `monthly_challenges` - Monthly coding challenges (Club)
 - `challenge_submissions` - User submissions for challenges
+- `organizations` - Organization profiles
+- `organization_members` - Org membership with roles
+- `hosted_hackathons` - Platform-hosted hackathons
+- `hackathon_registrations` - User registrations for hackathons
+- `hackathon_teams` - Teams within hackathons
+- `hackathon_team_members` - Team membership
+- `hackathon_submissions` - Project submissions
+- `judging_criteria` - Scoring criteria
+- `judging_scores` - Judge scores per submission
 
 ## Design Theme
 - **Colors**: Deep space blue backgrounds, neon purple/green/pink accents
@@ -91,7 +124,18 @@ BlueCoderHub is a gamified ed-tech platform inspired by Codedex.io, combining fe
 - **Components**: Pixel-art inspired cards with drop shadows
 - **Dark mode by default** with gradient backgrounds
 
-## Recent Changes (Jan 2026)
+## Recent Changes (Feb 2026)
+- **Organization System**: Create/manage organizations with role-based access (owner/admin/judge/member)
+- **Hackathon Hosting**: Organizations can create and manage hackathons with registration, teams, submissions, judging
+- **Admin Panel**: Added Organizations and Hosted Hackathons management tabs
+- **Navigation**: Added Organizations icon to top nav bar
+- **Hackathons Page**: Split into Platform Hackathons and External Events tabs
+- **HackathonDetail Page**: Full hackathon view with Overview/Teams/Submissions tabs
+- **CreateHackathon Page**: Form for organizations to create hackathons
+- 9 new database tables for organizations and hackathon hosting
+- 40+ storage layer methods for all organization and hackathon CRUD operations
+
+## Previous Changes (Jan 2026)
 - Added Tutorials/Learn page with structured courses (W3Schools/Codedex style)
 - Added Q&A Community/Discussions page (StackOverflow-style voting and answers)
 - Added Leaderboard page with global rankings

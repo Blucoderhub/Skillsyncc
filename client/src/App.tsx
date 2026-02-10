@@ -13,6 +13,7 @@ import Dashboard from "@/pages/Dashboard";
 import Quests from "@/pages/Quests";
 import ProblemDetail from "@/pages/ProblemDetail";
 import Hackathons from "@/pages/Hackathons";
+import CreateHackathon from "@/pages/CreateHackathon";
 import Practice from "@/pages/IDE";
 import Tutorials from "@/pages/Tutorials";
 import TutorialDetail from "@/pages/TutorialDetail";
@@ -26,6 +27,8 @@ import ClubSuccess from "@/pages/ClubSuccess";
 import Certificates from "@/pages/Certificates";
 import Portfolio from "@/pages/Portfolio";
 import Challenges from "@/pages/Challenges";
+import Organizations from "@/pages/Organizations";
+import HackathonDetail from "@/pages/HackathonDetail";
 import NotFound from "@/pages/not-found";
 
 // Protected Route Wrapper
@@ -81,6 +84,14 @@ function Router() {
         <ProtectedRoute component={Hackathons} />
       </Route>
 
+      <Route path="/hackathons/create">
+        <ProtectedRoute component={CreateHackathon} />
+      </Route>
+
+      <Route path="/hackathons/:id">
+        <ProtectedRoute component={HackathonDetail} />
+      </Route>
+
       <Route path="/practice">
         <ProtectedRoute component={Practice} />
       </Route>
@@ -133,6 +144,10 @@ function Router() {
 
       <Route path="/challenges">
         <ProtectedRoute component={Challenges} />
+      </Route>
+
+      <Route path="/organizations">
+        <ProtectedRoute component={Organizations} />
       </Route>
 
       <Route component={NotFound} />

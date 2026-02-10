@@ -3,12 +3,18 @@ import {
   problems, submissions, userProgress, hackathons, tutorials, lessons,
   discussions, answers, votes, badges, userBadges, dailyChallenges, userLessonProgress,
   users, certificates, projects, monthlyChallenges, challengeSubmissions,
+  organizations, organizationMembers, hackathonRegistrations, hackathonTeams,
+  teamMembers, hackathonSubmissions, judgingCriteria, judgingScores,
   type Problem, type Submission, type UserProgress, type Hackathon, type Tutorial, type Lesson,
   type Discussion, type Answer, type Badge, type UserBadge, type User,
   type Certificate, type Project, type MonthlyChallenge, type ChallengeSubmission,
-  type InsertSubmission, type InsertDiscussion, type InsertAnswer
+  type InsertSubmission, type InsertDiscussion, type InsertAnswer,
+  type Organization, type OrganizationMember, type HackathonRegistration,
+  type HackathonTeam, type TeamMember, type HackathonSubmission,
+  type JudgingCriterion, type JudgingScore,
+  type InsertOrganization, type InsertHackathonSubmission, type InsertJudgingScore
 } from "@shared/schema";
-import { eq, desc, sql, and, like, or, gte, lte } from "drizzle-orm";
+import { eq, desc, sql, and, like, or, gte, lte, count } from "drizzle-orm";
 
 export interface IStorage {
   // Problems
@@ -66,6 +72,52 @@ export interface IStorage {
   createChallengeSubmission(data: { userId: string; challengeId: number; projectUrl: string; description: string; submittedAt: Date }): Promise<ChallengeSubmission>;
   getUserChallengeSubmissions(userId: string, challengeId: number): Promise<ChallengeSubmission[]>;
   
+  // Organizations
+  createOrganization(data: InsertOrganization): Promise<Organization>;
+  getOrganizationById(id: number): Promise<Organization | undefined>;
+  getOrganizationBySlug(slug: string): Promise<Organization | undefined>;
+  getUserOrganizations(userId: string): Promise<(Organization & { role: string })[]>;
+  getAllOrganizations(): Promise<Organization[]>;
+  updateOrganization(id: number, data: Partial<Organization>): Promise<Organization>;
+  deleteOrganization(id: number): Promise<void>;
+  addOrgMember(orgId: number, userId: string, role: string): Promise<OrganizationMember>;
+  removeOrgMember(orgId: number, userId: string): Promise<void>;
+  getOrgMembers(orgId: number): Promise<(OrganizationMember & { user: User })[]>;
+  getOrgMemberRole(orgId: number, userId: string): Promise<string | null>;
+
+  // Hackathon Hosting
+  getHostedHackathons(orgId?: number): Promise<Hackathon[]>;
+  getHackathonById(id: number): Promise<Hackathon | undefined>;
+  createHostedHackathon(data: any): Promise<Hackathon>;
+  updateHostedHackathon(id: number, data: any): Promise<Hackathon>;
+
+  // Hackathon Registration
+  registerForHackathon(hackathonId: number, userId: string): Promise<HackathonRegistration>;
+  getHackathonRegistrations(hackathonId: number): Promise<HackathonRegistration[]>;
+  getUserHackathonRegistration(hackathonId: number, userId: string): Promise<HackathonRegistration | undefined>;
+  withdrawFromHackathon(hackathonId: number, userId: string): Promise<void>;
+  getHackathonRegistrationCount(hackathonId: number): Promise<number>;
+
+  // Teams
+  createTeam(hackathonId: number, name: string, captainUserId: string): Promise<HackathonTeam>;
+  getHackathonTeams(hackathonId: number): Promise<(HackathonTeam & { memberCount: number })[]>;
+  getTeamById(teamId: number): Promise<HackathonTeam | undefined>;
+  addTeamMember(teamId: number, userId: string): Promise<TeamMember>;
+  removeTeamMember(teamId: number, userId: string): Promise<void>;
+  getTeamMembers(teamId: number): Promise<TeamMember[]>;
+
+  // Hackathon Submissions
+  createHackathonSubmission(data: InsertHackathonSubmission): Promise<HackathonSubmission>;
+  getHackathonSubmissions(hackathonId: number): Promise<HackathonSubmission[]>;
+  getHackathonSubmissionById(id: number): Promise<HackathonSubmission | undefined>;
+  updateHackathonSubmission(id: number, data: Partial<HackathonSubmission>): Promise<HackathonSubmission>;
+
+  // Judging
+  createJudgingCriterion(hackathonId: number, name: string, description: string, weight: number, maxScore: number): Promise<JudgingCriterion>;
+  getJudgingCriteria(hackathonId: number): Promise<JudgingCriterion[]>;
+  submitJudgingScore(data: InsertJudgingScore): Promise<JudgingScore>;
+  getSubmissionScores(submissionId: number): Promise<(JudgingScore & { criterionName: string })[]>;
+
   // Seeding
   seedHackathons(hackathonsData: any[]): Promise<void>;
   seedProblems(problemsData: any[]): Promise<void>;
@@ -605,6 +657,272 @@ export class DatabaseStorage implements IStorage {
     if (existingChallenges.length === 0 && challengesData.length > 0) {
       await db.insert(monthlyChallenges).values(challengesData);
     }
+  }
+
+  // --- ORGANIZATIONS ---
+
+  async createOrganization(data: InsertOrganization): Promise<Organization> {
+    const [org] = await db.insert(organizations).values(data).returning();
+    await db.insert(organizationMembers).values({
+      organizationId: org.id,
+      userId: data.ownerUserId,
+      role: 'owner',
+    });
+    return org;
+  }
+
+  async getOrganizationById(id: number): Promise<Organization | undefined> {
+    const [org] = await db.select().from(organizations).where(eq(organizations.id, id));
+    return org;
+  }
+
+  async getOrganizationBySlug(slug: string): Promise<Organization | undefined> {
+    const [org] = await db.select().from(organizations).where(eq(organizations.slug, slug));
+    return org;
+  }
+
+  async getAllOrganizations(): Promise<Organization[]> {
+    return db.select().from(organizations);
+  }
+
+  async getUserOrganizations(userId: string): Promise<(Organization & { role: string })[]> {
+    const result = await db.select({
+      id: organizations.id,
+      name: organizations.name,
+      slug: organizations.slug,
+      description: organizations.description,
+      logoUrl: organizations.logoUrl,
+      website: organizations.website,
+      industry: organizations.industry,
+      countryCode: organizations.countryCode,
+      ownerUserId: organizations.ownerUserId,
+      verified: organizations.verified,
+      createdAt: organizations.createdAt,
+      role: organizationMembers.role,
+    })
+      .from(organizationMembers)
+      .innerJoin(organizations, eq(organizationMembers.organizationId, organizations.id))
+      .where(eq(organizationMembers.userId, userId));
+    return result as (Organization & { role: string })[];
+  }
+
+  async updateOrganization(id: number, data: Partial<Organization>): Promise<Organization> {
+    const [org] = await db.update(organizations).set(data).where(eq(organizations.id, id)).returning();
+    return org;
+  }
+
+  async deleteOrganization(id: number): Promise<void> {
+    await db.delete(organizationMembers).where(eq(organizationMembers.organizationId, id));
+    await db.delete(organizations).where(eq(organizations.id, id));
+  }
+
+  async addOrgMember(orgId: number, userId: string, role: string): Promise<OrganizationMember> {
+    const [member] = await db.insert(organizationMembers)
+      .values({ organizationId: orgId, userId, role })
+      .returning();
+    return member;
+  }
+
+  async removeOrgMember(orgId: number, userId: string): Promise<void> {
+    await db.delete(organizationMembers)
+      .where(and(eq(organizationMembers.organizationId, orgId), eq(organizationMembers.userId, userId)));
+  }
+
+  async getOrgMembers(orgId: number): Promise<(OrganizationMember & { user: User })[]> {
+    const result = await db.select({
+      id: organizationMembers.id,
+      organizationId: organizationMembers.organizationId,
+      userId: organizationMembers.userId,
+      role: organizationMembers.role,
+      joinedAt: organizationMembers.joinedAt,
+      user: users,
+    })
+      .from(organizationMembers)
+      .innerJoin(users, eq(organizationMembers.userId, users.id))
+      .where(eq(organizationMembers.organizationId, orgId));
+    return result as any;
+  }
+
+  async getOrgMemberRole(orgId: number, userId: string): Promise<string | null> {
+    const [member] = await db.select()
+      .from(organizationMembers)
+      .where(and(eq(organizationMembers.organizationId, orgId), eq(organizationMembers.userId, userId)));
+    return member?.role || null;
+  }
+
+  // --- HACKATHON HOSTING ---
+
+  async getHostedHackathons(orgId?: number): Promise<Hackathon[]> {
+    if (orgId) {
+      return await db.select().from(hackathons)
+        .where(and(eq(hackathons.hostOrgId, orgId), eq(hackathons.hostedOnPlatform, true)))
+        .orderBy(desc(hackathons.startDate));
+    }
+    return await db.select().from(hackathons)
+      .where(eq(hackathons.hostedOnPlatform, true))
+      .orderBy(desc(hackathons.startDate));
+  }
+
+  async getHackathonById(id: number): Promise<Hackathon | undefined> {
+    const [hackathon] = await db.select().from(hackathons).where(eq(hackathons.id, id));
+    return hackathon;
+  }
+
+  async createHostedHackathon(data: any): Promise<Hackathon> {
+    const [hackathon] = await db.insert(hackathons).values({
+      ...data,
+      hostedOnPlatform: true,
+    }).returning();
+    return hackathon;
+  }
+
+  async updateHostedHackathon(id: number, data: any): Promise<Hackathon> {
+    const [hackathon] = await db.update(hackathons).set(data).where(eq(hackathons.id, id)).returning();
+    return hackathon;
+  }
+
+  // --- HACKATHON REGISTRATION ---
+
+  async registerForHackathon(hackathonId: number, userId: string): Promise<HackathonRegistration> {
+    const [reg] = await db.insert(hackathonRegistrations)
+      .values({ hackathonId, userId, status: 'registered' })
+      .returning();
+    return reg;
+  }
+
+  async getHackathonRegistrations(hackathonId: number): Promise<HackathonRegistration[]> {
+    return await db.select().from(hackathonRegistrations)
+      .where(eq(hackathonRegistrations.hackathonId, hackathonId))
+      .orderBy(desc(hackathonRegistrations.registeredAt));
+  }
+
+  async getUserHackathonRegistration(hackathonId: number, userId: string): Promise<HackathonRegistration | undefined> {
+    const [reg] = await db.select().from(hackathonRegistrations)
+      .where(and(
+        eq(hackathonRegistrations.hackathonId, hackathonId),
+        eq(hackathonRegistrations.userId, userId)
+      ));
+    return reg;
+  }
+
+  async withdrawFromHackathon(hackathonId: number, userId: string): Promise<void> {
+    await db.delete(hackathonRegistrations)
+      .where(and(
+        eq(hackathonRegistrations.hackathonId, hackathonId),
+        eq(hackathonRegistrations.userId, userId)
+      ));
+  }
+
+  async getHackathonRegistrationCount(hackathonId: number): Promise<number> {
+    const [result] = await db.select({ count: count() })
+      .from(hackathonRegistrations)
+      .where(eq(hackathonRegistrations.hackathonId, hackathonId));
+    return result?.count || 0;
+  }
+
+  // --- TEAMS ---
+
+  async createTeam(hackathonId: number, name: string, captainUserId: string): Promise<HackathonTeam> {
+    const [team] = await db.insert(hackathonTeams)
+      .values({ hackathonId, name, captainUserId })
+      .returning();
+    await db.insert(teamMembers).values({ teamId: team.id, userId: captainUserId });
+    return team;
+  }
+
+  async getHackathonTeams(hackathonId: number): Promise<(HackathonTeam & { memberCount: number })[]> {
+    const teams = await db.select().from(hackathonTeams)
+      .where(eq(hackathonTeams.hackathonId, hackathonId))
+      .orderBy(hackathonTeams.createdAt);
+    
+    const teamsWithCount = await Promise.all(teams.map(async (team) => {
+      const [result] = await db.select({ count: count() })
+        .from(teamMembers)
+        .where(eq(teamMembers.teamId, team.id));
+      return { ...team, memberCount: result?.count || 0 };
+    }));
+    return teamsWithCount;
+  }
+
+  async getTeamById(teamId: number): Promise<HackathonTeam | undefined> {
+    const [team] = await db.select().from(hackathonTeams).where(eq(hackathonTeams.id, teamId));
+    return team;
+  }
+
+  async addTeamMember(teamId: number, userId: string): Promise<TeamMember> {
+    const [member] = await db.insert(teamMembers).values({ teamId, userId }).returning();
+    return member;
+  }
+
+  async removeTeamMember(teamId: number, userId: string): Promise<void> {
+    await db.delete(teamMembers)
+      .where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId)));
+  }
+
+  async getTeamMembers(teamId: number): Promise<TeamMember[]> {
+    return await db.select().from(teamMembers).where(eq(teamMembers.teamId, teamId));
+  }
+
+  // --- HACKATHON SUBMISSIONS ---
+
+  async createHackathonSubmission(data: InsertHackathonSubmission): Promise<HackathonSubmission> {
+    const [submission] = await db.insert(hackathonSubmissions).values(data).returning();
+    return submission;
+  }
+
+  async getHackathonSubmissions(hackathonId: number): Promise<HackathonSubmission[]> {
+    return await db.select().from(hackathonSubmissions)
+      .where(eq(hackathonSubmissions.hackathonId, hackathonId))
+      .orderBy(desc(hackathonSubmissions.submittedAt));
+  }
+
+  async getHackathonSubmissionById(id: number): Promise<HackathonSubmission | undefined> {
+    const [submission] = await db.select().from(hackathonSubmissions).where(eq(hackathonSubmissions.id, id));
+    return submission;
+  }
+
+  async updateHackathonSubmission(id: number, data: Partial<HackathonSubmission>): Promise<HackathonSubmission> {
+    const [submission] = await db.update(hackathonSubmissions)
+      .set(data)
+      .where(eq(hackathonSubmissions.id, id))
+      .returning();
+    return submission;
+  }
+
+  // --- JUDGING ---
+
+  async createJudgingCriterion(hackathonId: number, name: string, description: string, weight: number, maxScore: number): Promise<JudgingCriterion> {
+    const [criterion] = await db.insert(judgingCriteria)
+      .values({ hackathonId, name, description, weight, maxScore })
+      .returning();
+    return criterion;
+  }
+
+  async getJudgingCriteria(hackathonId: number): Promise<JudgingCriterion[]> {
+    return await db.select().from(judgingCriteria)
+      .where(eq(judgingCriteria.hackathonId, hackathonId));
+  }
+
+  async submitJudgingScore(data: InsertJudgingScore): Promise<JudgingScore> {
+    const [score] = await db.insert(judgingScores).values(data).returning();
+    return score;
+  }
+
+  async getSubmissionScores(submissionId: number): Promise<(JudgingScore & { criterionName: string })[]> {
+    const result = await db.select({
+      id: judgingScores.id,
+      submissionId: judgingScores.submissionId,
+      judgeUserId: judgingScores.judgeUserId,
+      criterionId: judgingScores.criterionId,
+      score: judgingScores.score,
+      comment: judgingScores.comment,
+      scoredAt: judgingScores.scoredAt,
+      criterionName: judgingCriteria.name,
+    })
+      .from(judgingScores)
+      .innerJoin(judgingCriteria, eq(judgingScores.criterionId, judgingCriteria.id))
+      .where(eq(judgingScores.submissionId, submissionId));
+    return result as any;
   }
 }
 

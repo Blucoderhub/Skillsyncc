@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
 import { 
   Users, BookOpen, Calendar, Code, ChevronRight, Shield, Eye,
-  Plus, Trash2, Edit, Check, X, BarChart3
+  Plus, Trash2, Edit, Check, X, BarChart3, Building2, Trophy
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -93,6 +93,16 @@ export default function Admin() {
     enabled: isAdminCheck?.isAdmin && activeTab === "submissions",
   });
 
+  const { data: organizations } = useQuery<any[]>({
+    queryKey: ["/api/admin/organizations"],
+    enabled: isAdminCheck?.isAdmin && activeTab === "organizations",
+  });
+
+  const { data: hostedHackathons } = useQuery<any[]>({
+    queryKey: ["/api/admin/hosted-hackathons"],
+    enabled: isAdminCheck?.isAdmin && activeTab === "hosted-hackathons",
+  });
+
   const toggleAdminMutation = useMutation({
     mutationFn: async ({ userId, isAdmin }: { userId: string; isAdmin: boolean }) => {
       return apiRequest("PATCH", `/api/admin/users/${userId}/admin`, { isAdmin });
@@ -142,7 +152,7 @@ export default function Admin() {
       </motion.div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-5 mb-8">
+        <TabsList className="grid grid-cols-7 mb-8">
           <TabsTrigger value="overview" className="gap-2" data-testid="tab-overview">
             <BarChart3 className="w-4 h-4" /> Overview
           </TabsTrigger>
@@ -153,7 +163,13 @@ export default function Admin() {
             <BookOpen className="w-4 h-4" /> Tutorials
           </TabsTrigger>
           <TabsTrigger value="hackathons" className="gap-2" data-testid="tab-hackathons">
-            <Calendar className="w-4 h-4" /> Hackathons
+            <Calendar className="w-4 h-4" /> External
+          </TabsTrigger>
+          <TabsTrigger value="hosted-hackathons" className="gap-2" data-testid="tab-hosted-hackathons">
+            <Trophy className="w-4 h-4" /> Hosted
+          </TabsTrigger>
+          <TabsTrigger value="organizations" className="gap-2" data-testid="tab-organizations">
+            <Building2 className="w-4 h-4" /> Orgs
           </TabsTrigger>
           <TabsTrigger value="submissions" className="gap-2" data-testid="tab-submissions">
             <Code className="w-4 h-4" /> Submissions
@@ -264,6 +280,14 @@ export default function Admin() {
 
         <TabsContent value="hackathons">
           <HackathonManagement hackathons={hackathons || []} />
+        </TabsContent>
+
+        <TabsContent value="hosted-hackathons">
+          <HostedHackathonManagement hackathons={hostedHackathons || []} />
+        </TabsContent>
+
+        <TabsContent value="organizations">
+          <OrganizationManagement organizations={organizations || []} />
         </TabsContent>
 
         <TabsContent value="submissions">
@@ -619,6 +643,123 @@ function HackathonManagement({ hackathons }: { hackathons: any[] }) {
           ))}
           {hackathons.length === 0 && (
             <p className="text-center text-muted-foreground py-8">No hackathons yet</p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function HostedHackathonManagement({ hackathons }: { hackathons: any[] }) {
+  const { toast } = useToast();
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      return apiRequest("PATCH", `/api/admin/hosted-hackathons/${id}/status`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/hosted-hackathons"] });
+      toast({ title: "Hackathon status updated" });
+    },
+    onError: () => {
+      toast({ title: "Failed to update status", variant: "destructive" });
+    },
+  });
+
+  const statusOptions = ["draft", "open", "in_progress", "judging", "completed"];
+  const statusColors: Record<string, string> = {
+    draft: "outline",
+    open: "default",
+    in_progress: "default",
+    judging: "secondary",
+    completed: "outline",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Hosted Hackathons</CardTitle>
+        <CardDescription>Review and moderate platform-hosted hackathons</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {hackathons.map((h) => (
+            <div 
+              key={h.id} 
+              className="flex items-center justify-between p-4 rounded-lg bg-muted/50 border border-border flex-wrap gap-2"
+              data-testid={`hosted-hackathon-row-${h.id}`}
+            >
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">{h.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  by {h.organizationName || 'Unknown Org'} | {h.registrationCount || 0} registrations
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant={(statusColors[h.status] as any) || "outline"}>
+                  {(h.status || 'draft').replace('_', ' ')}
+                </Badge>
+                <Select 
+                  value={h.status || 'draft'} 
+                  onValueChange={(v) => updateStatusMutation.mutate({ id: h.id, status: v })}
+                >
+                  <SelectTrigger className="w-32" data-testid={`select-status-${h.id}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statusOptions.map((s) => (
+                      <SelectItem key={s} value={s}>{s.replace('_', ' ')}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          ))}
+          {hackathons.length === 0 && (
+            <p className="text-center text-muted-foreground py-8">No hosted hackathons yet</p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function OrganizationManagement({ organizations }: { organizations: any[] }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Organizations</CardTitle>
+        <CardDescription>View and manage registered organizations</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {organizations.map((org) => (
+            <div 
+              key={org.id} 
+              className="flex items-center justify-between p-4 rounded-lg bg-muted/50 border border-border flex-wrap gap-2"
+              data-testid={`org-row-${org.id}`}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Building2 className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">{org.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Owner: {org.ownerName || org.ownerId} | Members: {org.memberCount || 0}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">{org.hackathonCount || 0} hackathons</Badge>
+                {org.verified && (
+                  <Badge variant="default">Verified</Badge>
+                )}
+              </div>
+            </div>
+          ))}
+          {organizations.length === 0 && (
+            <p className="text-center text-muted-foreground py-8">No organizations yet</p>
           )}
         </div>
       </CardContent>
