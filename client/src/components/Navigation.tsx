@@ -4,6 +4,7 @@ import { useUserStats } from "@/hooks/use-user-stats";
 import { useQuery } from "@tanstack/react-query";
 import { Code2, Swords, Trophy, LogOut, Map, BookOpen, MessageSquare, Calendar, Shield, Crown, Award, Folder, Target, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SkillsynccLogo } from "@/components/SkillsynccLogo";
 
 
 export function Navigation() {
@@ -32,9 +33,10 @@ export function Navigation() {
   return (
     <header className="shrink-0 z-50 w-full border-b-2 border-border bg-background">
       <div className="max-w-full px-2 sm:px-4 py-2 flex h-14 items-center justify-between gap-1">
-        <Link href="/" className="flex items-center gap-2 group shrink-0" data-testid="link-home-logo">
-          <span className="font-display text-sm text-primary tracking-tighter">
-            Skillsyncc
+        <Link href="/" className="flex items-center gap-1.5 group shrink-0" data-testid="link-home-logo">
+          <SkillsynccLogo size="sm" animate={false} />
+          <span className="font-display text-sm text-primary tracking-tighter hidden lg:block">
+            Skill<span className="text-secondary">syncc</span>
           </span>
         </Link>
 

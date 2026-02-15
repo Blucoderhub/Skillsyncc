@@ -3,10 +3,13 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Navigation } from "@/components/Navigation";
 import { ChatWidget } from "@/components/ChatWidget";
 import { Footer } from "@/components/Footer";
+import { SkillsynccLogoTransition } from "@/components/SkillsynccLogo";
+import { usePageTransition } from "@/hooks/use-page-transition";
 
 import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
@@ -180,10 +183,23 @@ function Router() {
   );
 }
 
+function PageTransitionOverlay() {
+  const { isTransitioning, onTransitionComplete } = usePageTransition();
+
+  return (
+    <AnimatePresence>
+      {isTransitioning && (
+        <SkillsynccLogoTransition onComplete={onTransitionComplete} />
+      )}
+    </AnimatePresence>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <PageTransitionOverlay />
         <Router />
         <Toaster />
       </TooltipProvider>

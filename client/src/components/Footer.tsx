@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Mail } from "lucide-react";
 import { SiGithub, SiLinkedin, SiX, SiInstagram, SiDiscord, SiYoutube } from "react-icons/si";
+import { SkillsynccLogo } from "@/components/SkillsynccLogo";
 
 
 export function Footer() {
@@ -19,12 +20,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-3 group" data-testid="footer-link-home">
-              <div className="flex flex-col">
-                <span className="font-display text-lg text-primary tracking-tighter">
-                  Skill<span className="text-secondary">syncc</span>
-                </span>
-                <span className="text-[9px] text-muted-foreground tracking-wide">Powered by Bluecoderhub</span>
-              </div>
+              <SkillsynccLogo size="md" animate={false} showText showPoweredBy />
             </Link>
             <p className="text-sm text-muted-foreground max-w-xs">
               Your gamified journey to mastering code. Learn, practice, and compete with coders worldwide.

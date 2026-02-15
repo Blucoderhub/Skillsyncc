@@ -7,6 +7,7 @@ import {
   MessageSquare, Calendar, Shield, Zap, 
   Globe, LayoutGrid, Rocket, Target, Users, Crown, Quote, Star
 } from "lucide-react";
+import { SkillsynccLogo } from "@/components/SkillsynccLogo";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -75,12 +76,7 @@ export default function Landing() {
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-3"
           >
-            <div className="flex flex-col">
-              <span className="text-xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-                Skill<span className="text-primary">syncc</span>
-              </span>
-              <span className="text-[8px] text-gray-500 tracking-wider">Powered by Bluecoderhub</span>
-            </div>
+            <SkillsynccLogo size="md" animate showText showPoweredBy />
           </motion.div>
 
           <div className="flex gap-4">

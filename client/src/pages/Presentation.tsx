@@ -11,6 +11,7 @@ import {
   GraduationCap, Briefcase, Calendar, Gift, Eye,
   Database, Server, Activity, Settings, Download
 } from "lucide-react";
+import { SkillsynccLogo } from "@/components/SkillsynccLogo";
 
 
 interface Slide {
@@ -71,6 +72,7 @@ export default function Presentation() {
       title: "Skillsyncc",
       content: (
         <div className="flex flex-col items-center justify-center h-full gap-6 text-center">
+          <SkillsynccLogo size="xl" animate />
           <div>
             <h1 className="text-4xl font-bold tracking-tight mb-3">Skillsyncc</h1>
             <p className="text-lg text-muted-foreground">Powered by Bluecoderhub</p>
@@ -545,6 +547,7 @@ export default function Presentation() {
     <div className="min-h-screen bg-background flex flex-col" data-testid="presentation-page">
       <div className="flex items-center justify-between p-3 border-b gap-2">
         <div className="flex items-center gap-3">
+          <SkillsynccLogo size="sm" animate={false} />
           <span className="font-semibold text-sm">Skillsyncc Feature Presentation</span>
         </div>
         <SlideCounter current={currentSlide + 1} total={slides.length} />
