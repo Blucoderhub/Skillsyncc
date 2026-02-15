@@ -69,6 +69,29 @@ const isClubMember = async (req: Request, res: Response, next: NextFunction) => 
   }
 };
 
+const requireRole = (...roles: string[]) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const reqAny = req as any;
+    const userId = reqAny.user?.claims?.sub;
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+    try {
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      if (user.isAdmin) return next();
+      if (!user.userRole || !roles.includes(user.userRole)) {
+        return res.status(403).json({ error: "Access denied for your account type" });
+      }
+      next();
+    } catch (error) {
+      return res.status(500).json({ error: "Failed to verify role" });
+    }
+  };
+};
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -89,7 +112,66 @@ export async function registerRoutes(
   // 4. Setup Admin Routes
   registerAdminRoutes(app);
 
-  // 5. Application Routes
+  // 5. Role Selection & Management
+  app.post("/api/user/role", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const reqAny = req as any;
+      const userId = reqAny.user?.claims?.sub;
+      if (!userId) return res.status(401).json({ error: "Not authenticated" });
+
+      const { role, companyName, institution } = req.body;
+      const validRoles = ["corporate", "hr", "student", "candidate"];
+      if (!role || !validRoles.includes(role)) {
+        return res.status(400).json({ error: "Invalid role. Must be: corporate, hr, student, or candidate" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (user?.userRole && user.userRole !== "admin") {
+        return res.status(400).json({ error: "Role has already been set. Contact support to change." });
+      }
+
+      const updated = await storage.updateUserRole(userId, role, { companyName, institution });
+      res.json(updated);
+    } catch (error) {
+      console.error("Error setting user role:", error);
+      res.status(500).json({ error: "Failed to set role" });
+    }
+  });
+
+  app.get("/api/user/role", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const reqAny = req as any;
+      const userId = reqAny.user?.claims?.sub;
+      if (!userId) return res.status(401).json({ error: "Not authenticated" });
+
+      const user = await storage.getUser(userId);
+      res.json({ role: user?.userRole || null, isAdmin: user?.isAdmin || false });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get role" });
+    }
+  });
+
+  app.get("/api/users/candidates", isAuthenticated, requireRole("corporate", "hr"), async (_req: Request, res: Response) => {
+    try {
+      const students = await storage.getUsersByRole("student");
+      const candidates = await storage.getUsersByRole("candidate");
+      const allCandidates = [...students, ...candidates].map(u => ({
+        id: u.id,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        email: u.email,
+        profileImageUrl: u.profileImageUrl,
+        userRole: u.userRole,
+        institution: u.institution,
+        createdAt: u.createdAt,
+      }));
+      res.json(allCandidates);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch candidates" });
+    }
+  });
+
+  // 6. Application Routes
 
   // Problems List with filters
   app.get(api.problems.list.path, async (req: any, res) => {
@@ -488,7 +570,7 @@ export async function registerRoutes(
     res.json(org);
   });
 
-  app.post("/api/organizations", isAuthenticated, async (req: Request, res: Response) => {
+  app.post("/api/organizations", isAuthenticated, requireRole("corporate"), async (req: Request, res: Response) => {
     const userId = (req as any).user?.claims?.sub;
     const { name, description, website, industry, countryCode, logoUrl } = req.body;
     
@@ -511,7 +593,7 @@ export async function registerRoutes(
     res.json(org);
   });
 
-  app.patch("/api/organizations/:id", isAuthenticated, async (req: Request, res: Response) => {
+  app.patch("/api/organizations/:id", isAuthenticated, requireRole("corporate"), async (req: Request, res: Response) => {
     const userId = (req as any).user?.claims?.sub;
     const id = parseInt(req.params.id);
     
@@ -544,7 +626,7 @@ export async function registerRoutes(
     res.json(members);
   });
 
-  app.post("/api/organizations/:id/members", isAuthenticated, async (req: Request, res: Response) => {
+  app.post("/api/organizations/:id/members", isAuthenticated, requireRole("corporate"), async (req: Request, res: Response) => {
     const currentUserId = (req as any).user?.claims?.sub;
     const orgId = parseInt(req.params.id);
     
@@ -563,7 +645,7 @@ export async function registerRoutes(
     res.json(member);
   });
 
-  app.delete("/api/organizations/:id/members/:userId", isAuthenticated, async (req: Request, res: Response) => {
+  app.delete("/api/organizations/:id/members/:userId", isAuthenticated, requireRole("corporate"), async (req: Request, res: Response) => {
     const currentUserId = (req as any).user?.claims?.sub;
     const orgId = parseInt(req.params.id);
     const targetUserId = req.params.userId;
@@ -608,7 +690,7 @@ export async function registerRoutes(
     res.json({ ...hackathon, registrationCount: regCount, teams, judgingCriteria: criteria });
   });
 
-  app.post("/api/hosted-hackathons", isAuthenticated, async (req: Request, res: Response) => {
+  app.post("/api/hosted-hackathons", isAuthenticated, requireRole("corporate"), async (req: Request, res: Response) => {
     const userId = (req as any).user?.claims?.sub;
     const { 
       title, description, startDate, endDate, registrationDeadline,
@@ -647,7 +729,7 @@ export async function registerRoutes(
     res.json(hackathon);
   });
 
-  app.patch("/api/hosted-hackathons/:id", isAuthenticated, async (req: Request, res: Response) => {
+  app.patch("/api/hosted-hackathons/:id", isAuthenticated, requireRole("corporate"), async (req: Request, res: Response) => {
     const userId = (req as any).user?.claims?.sub;
     const id = parseInt(req.params.id);
     
@@ -790,7 +872,7 @@ export async function registerRoutes(
   });
 
   // Judging
-  app.post("/api/hosted-hackathons/:id/criteria", isAuthenticated, async (req: Request, res: Response) => {
+  app.post("/api/hosted-hackathons/:id/criteria", isAuthenticated, requireRole("corporate"), async (req: Request, res: Response) => {
     const userId = (req as any).user?.claims?.sub;
     const hackathonId = parseInt(req.params.id);
     
@@ -815,7 +897,7 @@ export async function registerRoutes(
     res.json(criteria);
   });
 
-  app.post("/api/submissions/:submissionId/score", isAuthenticated, async (req: Request, res: Response) => {
+  app.post("/api/submissions/:submissionId/score", isAuthenticated, requireRole("corporate"), async (req: Request, res: Response) => {
     const userId = (req as any).user?.claims?.sub;
     const submissionId = parseInt(req.params.submissionId);
     const { criterionId, score, comment } = req.body;
@@ -882,7 +964,7 @@ export async function registerRoutes(
     res.json(content);
   });
 
-  app.post("/api/cms/content", isAuthenticated, async (req: Request, res: Response) => {
+  app.post("/api/cms/content", isAuthenticated, requireRole("admin"), async (req: Request, res: Response) => {
     const userId = (req as any).user?.claims?.sub;
     const { title, contentType, templateType, contentJson, category, subCategory, tags, difficultyLevel, estimatedMinutes, metaTitle, metaDescription, isPremium, status } = req.body;
 
@@ -917,7 +999,7 @@ export async function registerRoutes(
     res.json(content);
   });
 
-  app.patch("/api/cms/content/:id", isAuthenticated, async (req: Request, res: Response) => {
+  app.patch("/api/cms/content/:id", isAuthenticated, requireRole("admin"), async (req: Request, res: Response) => {
     const userId = (req as any).user?.claims?.sub;
     const id = parseInt(req.params.id);
     const { contentJson, isAutoSave, changeLog, ...updates } = req.body;
@@ -937,7 +1019,7 @@ export async function registerRoutes(
     res.json(updated);
   });
 
-  app.post("/api/cms/content/:id/publish", isAuthenticated, async (req: Request, res: Response) => {
+  app.post("/api/cms/content/:id/publish", isAuthenticated, requireRole("admin"), async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     const existing = await storage.getCmsContentById(id);
     if (!existing) return res.status(404).json({ error: "Content not found" });
@@ -946,7 +1028,7 @@ export async function registerRoutes(
     res.json(published);
   });
 
-  app.delete("/api/cms/content/:id", isAuthenticated, async (req: Request, res: Response) => {
+  app.delete("/api/cms/content/:id", isAuthenticated, requireRole("admin"), async (req: Request, res: Response) => {
     const id = parseInt(req.params.id);
     await storage.deleteCmsContent(id);
     res.json({ success: true });
@@ -958,7 +1040,7 @@ export async function registerRoutes(
     res.json(versions);
   });
 
-  app.post("/api/cms/content/:id/restore/:versionNumber", isAuthenticated, async (req: Request, res: Response) => {
+  app.post("/api/cms/content/:id/restore/:versionNumber", isAuthenticated, requireRole("admin"), async (req: Request, res: Response) => {
     const userId = (req as any).user?.claims?.sub;
     const id = parseInt(req.params.id);
     const versionNumber = parseInt(req.params.versionNumber);

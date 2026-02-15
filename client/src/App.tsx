@@ -1,6 +1,6 @@
-import { Switch, Route, Redirect } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AnimatePresence } from "framer-motion";
@@ -13,6 +13,8 @@ import { usePageTransition } from "@/hooks/use-page-transition";
 
 import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
+import CorporateDashboard from "@/pages/CorporateDashboard";
+import HRDashboard from "@/pages/HRDashboard";
 import Quests from "@/pages/Quests";
 import ProblemDetail from "@/pages/ProblemDetail";
 import Hackathons from "@/pages/Hackathons";
@@ -38,15 +40,36 @@ import ContentViewer from "@/pages/ContentViewer";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import Presentation from "@/pages/Presentation";
+import RoleSelection from "@/pages/RoleSelection";
 import NotFound from "@/pages/not-found";
 
-// Protected Route Wrapper
-function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
-  const { user, isLoading } = useAuth();
+function useUserRole() {
+  const { user } = useAuth();
+  return useQuery<{ role: string | null; isAdmin: boolean }>({
+    queryKey: ["/api/user/role"],
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
+  });
+}
 
-  if (isLoading) return <div className="h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary rounded-full border-t-transparent animate-spin"></div></div>;
+function ProtectedRoute({ component: Component, allowedRoles }: { component: React.ComponentType; allowedRoles?: string[] }) {
+  const { user, isLoading } = useAuth();
+  const { data: roleData, isLoading: roleLoading } = useUserRole();
+  const [location] = useLocation();
+
+  if (isLoading || roleLoading) return <div className="h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary rounded-full border-t-transparent animate-spin"></div></div>;
   
   if (!user) return <Redirect to="/" />;
+
+  if (!roleData?.role && !roleData?.isAdmin && location !== "/select-role") {
+    return <Redirect to="/select-role" />;
+  }
+
+  if (allowedRoles && !roleData?.isAdmin) {
+    if (!roleData?.role || !allowedRoles.includes(roleData.role)) {
+      return <Redirect to="/dashboard" />;
+    }
+  }
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
@@ -60,7 +83,23 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   );
 }
 
-// Public Route Wrapper (redirects to dashboard if logged in)
+function RoleDashboardRouter() {
+  const { data: roleData, isLoading } = useUserRole();
+
+  if (isLoading) return <div className="h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary rounded-full border-t-transparent animate-spin"></div></div>;
+
+  if (roleData?.role === "corporate") return <CorporateDashboard />;
+  if (roleData?.role === "hr") return <HRDashboard />;
+  return <Dashboard />;
+}
+
+function RoleSelectionRoute() {
+  const { user, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!user) return <Redirect to="/" />;
+  return <RoleSelection />;
+}
+
 function PublicRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading } = useAuth();
 
@@ -77,16 +116,20 @@ function Router() {
         <PublicRoute component={Landing} />
       </Route>
       
+      <Route path="/select-role">
+        <RoleSelectionRoute />
+      </Route>
+
       <Route path="/dashboard">
-        <ProtectedRoute component={Dashboard} />
+        <ProtectedRoute component={RoleDashboardRouter} />
       </Route>
 
       <Route path="/quests">
-        <ProtectedRoute component={Quests} />
+        <ProtectedRoute component={Quests} allowedRoles={["student", "candidate"]} />
       </Route>
 
       <Route path="/quests/:slug">
-        <ProtectedRoute component={ProblemDetail} />
+        <ProtectedRoute component={ProblemDetail} allowedRoles={["student", "candidate"]} />
       </Route>
 
       <Route path="/hackathons">
@@ -94,7 +137,7 @@ function Router() {
       </Route>
 
       <Route path="/hackathons/create">
-        <ProtectedRoute component={CreateHackathon} />
+        <ProtectedRoute component={CreateHackathon} allowedRoles={["corporate"]} />
       </Route>
 
       <Route path="/hackathons/:id">
@@ -102,7 +145,7 @@ function Router() {
       </Route>
 
       <Route path="/practice">
-        <ProtectedRoute component={Practice} />
+        <ProtectedRoute component={Practice} allowedRoles={["student", "candidate"]} />
       </Route>
 
       <Route path="/ide">
@@ -110,11 +153,11 @@ function Router() {
       </Route>
 
       <Route path="/tutorials">
-        <ProtectedRoute component={Tutorials} />
+        <ProtectedRoute component={Tutorials} allowedRoles={["student", "candidate"]} />
       </Route>
 
       <Route path="/tutorials/:slug">
-        <ProtectedRoute component={TutorialDetail} />
+        <ProtectedRoute component={TutorialDetail} allowedRoles={["student", "candidate"]} />
       </Route>
 
       <Route path="/discussions">
@@ -134,7 +177,7 @@ function Router() {
       </Route>
 
       <Route path="/admin">
-        <ProtectedRoute component={Admin} />
+        <ProtectedRoute component={Admin} allowedRoles={["admin"]} />
       </Route>
 
       <Route path="/pricing" component={Pricing} />
@@ -143,35 +186,35 @@ function Router() {
       <Route path="/presentation" component={Presentation} />
 
       <Route path="/club/success">
-        <ProtectedRoute component={ClubSuccess} />
+        <ProtectedRoute component={ClubSuccess} allowedRoles={["student", "candidate"]} />
       </Route>
 
       <Route path="/certificates">
-        <ProtectedRoute component={Certificates} />
+        <ProtectedRoute component={Certificates} allowedRoles={["student", "candidate"]} />
       </Route>
 
       <Route path="/portfolio">
-        <ProtectedRoute component={Portfolio} />
+        <ProtectedRoute component={Portfolio} allowedRoles={["student", "candidate"]} />
       </Route>
 
       <Route path="/challenges">
-        <ProtectedRoute component={Challenges} />
+        <ProtectedRoute component={Challenges} allowedRoles={["student", "candidate"]} />
       </Route>
 
       <Route path="/organizations/:id">
-        <ProtectedRoute component={OrganizationDetail} />
+        <ProtectedRoute component={OrganizationDetail} allowedRoles={["corporate"]} />
       </Route>
 
       <Route path="/organizations">
-        <ProtectedRoute component={Organizations} />
+        <ProtectedRoute component={Organizations} allowedRoles={["corporate"]} />
       </Route>
 
       <Route path="/cms/new">
-        <ProtectedRoute component={ContentEditor} />
+        <ProtectedRoute component={ContentEditor} allowedRoles={["admin"]} />
       </Route>
 
       <Route path="/cms/edit/:id">
-        <ProtectedRoute component={ContentEditor} />
+        <ProtectedRoute component={ContentEditor} allowedRoles={["admin"]} />
       </Route>
 
       <Route path="/learn/:slug">

@@ -12,21 +12,29 @@ Skillsyncc is a gamified ed-tech platform inspired by Codedex.io, combining feat
 - **AI**: Replit AI Integrations (OpenAI gpt-5 models - no API key required)
 - **Code Editor**: Monaco Editor (@monaco-editor/react)
 
+## User Types (Role-Based Access)
+The platform supports 5 user types, selected during first login:
+1. **Admin** - Website owner only. Full CMS/content management, user management, system monitoring. Set manually in DB.
+2. **Corporate** - Managers & Companies. Host hackathons, manage organizations, view candidate dashboards, judging.
+3. **HR** - Recruiters & Talent Teams. Search candidates, review hackathon performance, view rankings.
+4. **Student** - College & School Students. Full learning experience: quests, tutorials, IDE, challenges, XP progression.
+5. **Candidate** - Job Seekers & Professionals. Full learning + portfolio builder, hackathon participation.
+
 ## Key Features
-1. **Gamified Learning**: XP, levels, streaks, and quests
-2. **Code Quests**: Interactive coding challenges with instant feedback
-3. **Built-in IDE**: Monaco-powered code editor
-4. **AI Companion**: Chat widget powered by OpenAI
-5. **Hackathon Tracker**: Global hackathon listings
-6. **User Progress**: XP tracking, level progression
+1. **Gamified Learning**: XP, levels, streaks, and quests (Student/Candidate)
+2. **Code Quests**: Interactive coding challenges with instant feedback (Student/Candidate)
+3. **Built-in IDE**: Monaco-powered code editor (Student/Candidate)
+4. **AI Companion**: Syncc AI chat with 5 modes (Tutor, Code Review, Hint, Debug, Quiz)
+5. **Hackathon Hosting**: Organizations create/manage hackathons (Corporate)
+6. **Candidate Discovery**: Search and evaluate talent (HR/Corporate)
 7. **Club Membership**: Premium subscription tier with Stripe payments
 8. **Certificates**: Verifiable course completion certificates (Club-only)
 9. **Portfolio Hosting**: Showcase projects with public profiles (Club-only)
 10. **Monthly Challenges**: Competitive coding challenges with prizes (Club-only)
-11. **Organization System**: Create/manage organizations with role-based access (owner/admin/judge/member)
-12. **Hackathon Hosting**: Organizations can create/manage hackathons with registration, teams, submissions, judging
-13. **CMS**: Content Management System for creating tutorials with text, code, quiz, image, and interactive code sections
-14. **Self-Healing/Monitoring**: Error logging middleware, health checks (CPU, memory, DB), admin monitoring dashboard
+11. **Organization System**: Create/manage organizations with role-based access (Corporate)
+12. **CMS**: Content Management System for creating tutorials (Admin-only)
+13. **Self-Healing/Monitoring**: Error logging middleware, health checks, admin dashboard (Admin-only)
+14. **Role-Based Navigation**: Each user type sees only relevant features in the nav bar
 
 ## Project Structure
 ```
@@ -58,6 +66,11 @@ Skillsyncc is a gamified ed-tech platform inspired by Codedex.io, combining feat
 - `GET /api/auth/user` - Get current user
 - `/api/login` - Login flow
 - `/api/logout` - Logout flow
+
+### Role Management Endpoints
+- `GET /api/user/role` - Get current user's role
+- `POST /api/user/role` - Set user role during onboarding (one-time)
+- `GET /api/users/candidates` - List all student/candidate users (Corporate/HR only)
 
 ### Club Premium Endpoints (requires active Club membership)
 - `GET /api/certificates` - Get user's certificates

@@ -12,7 +12,7 @@ import {
   type InsertSubmission, type InsertDiscussion, type InsertAnswer,
   type Organization, type OrganizationMember, type HackathonRegistration,
   type HackathonTeam, type TeamMember, type HackathonSubmission,
-  type JudgingCriterion, type JudgingScore,
+  type JudgingCriterion, type JudgingScore, type UserRole,
   type InsertOrganization, type InsertHackathonSubmission, type InsertJudgingScore,
   type CmsContent, type InsertCmsContent, type ContentVersion, type ContentAnalyticsRow,
   type ErrorLog, type InsertErrorLog, type SystemMetric, type AutoFixLog
@@ -495,6 +495,20 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserAdmin(userId: string, isAdmin: boolean): Promise<void> {
     await db.update(users).set({ isAdmin }).where(eq(users.id, userId));
+  }
+
+  async updateUserRole(userId: string, role: string, extra?: { companyName?: string; institution?: string }): Promise<User> {
+    const [updated] = await db.update(users).set({ 
+      userRole: role,
+      ...(extra?.companyName ? { companyName: extra.companyName } : {}),
+      ...(extra?.institution ? { institution: extra.institution } : {}),
+      updatedAt: new Date(),
+    }).where(eq(users.id, userId)).returning();
+    return updated;
+  }
+
+  async getUsersByRole(role: string): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.userRole, role)).orderBy(desc(users.createdAt));
   }
 
   async getAllUserSubmissions(userId: string): Promise<Submission[]> {

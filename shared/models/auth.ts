@@ -13,6 +13,9 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)]
 );
 
+export const USER_ROLES = ["admin", "corporate", "hr", "student", "candidate"] as const;
+export type UserRole = typeof USER_ROLES[number];
+
 // User storage table.
 // (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
 export const users = pgTable("users", {
@@ -22,10 +25,13 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   isAdmin: boolean("is_admin").default(false),
+  userRole: varchar("user_role"),
+  companyName: varchar("company_name"),
+  institution: varchar("institution"),
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
-  membershipStatus: varchar("membership_status").default("free"), // 'free', 'active', 'canceled', 'past_due'
-  membershipTier: varchar("membership_tier").default("free"), // 'free', 'club_monthly', 'club_yearly'
+  membershipStatus: varchar("membership_status").default("free"),
+  membershipTier: varchar("membership_tier").default("free"),
   membershipExpiresAt: timestamp("membership_expires_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
